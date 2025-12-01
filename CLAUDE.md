@@ -1,218 +1,75 @@
 # CLAUDE.md
 
-This file provides technical guidance for developers working with this codebase.
-
 ## What This Is
 
-A Claude Code skill that enables interaction with org-roam note-taking systems through emacsclient. This allows Claude Code to create, query, and manage org-roam notes in a running Emacs daemon.
+A Claude Code skill enabling interaction with org-roam note-taking systems through emacsclient. Communicates with a running Emacs daemon to create, query, and manage org-roam notes.
 
 ## Architecture
 
-This skill uses emacsclient to communicate with a running Emacs daemon, avoiding the overhead of starting new Emacs processes. All operations leverage org-roam's built-in functions through evaluated Elisp code.
+**Core components:**
+- `SKILL.md` - Main skill instructions with usage examples and function reference
+- `org-roam-skill.el` - Main package loading all modules
+- `org-roam-skill-*.el` - Modular implementations (create, search, links, tags, attach, utils, doctor)
+- `scripts/*.el` - Legacy helper scripts (deprecated, backward compatibility only)
+- `references/` - API documentation for org-roam functions
 
-**Key components:**
-- `SKILL.md` - Main skill instructions (see this for usage examples and function reference)
-- `org-roam-skill.el` - Main Emacs package that loads all modules
-- `org-roam-skill-*.el` - Modular function implementations (create, search, links, tags, attach, utils, doctor)
-- `scripts/*.el` - Legacy helper scripts (deprecated, kept for backward compatibility)
-- `references/` - API documentation for org-roam functions and emacsclient usage patterns
+**Package loading:**
+Users must load `org-roam-skill` in their Emacs config (see `agent_docs/setup.md` for details). All functions use `org-roam-skill-` prefix except diagnostics (`org-roam-doctor*`).
 
-## Package Loading
-
-The user must load `org-roam-skill` in their Emacs configuration:
-
-**For Doom Emacs** (add to `config.el`):
-```elisp
-(use-package! org-roam-skill
-  :load-path "~/.claude/skills/org-roam-skill")
-```
-
-**For vanilla Emacs** (add to `init.el`):
-```elisp
-(add-to-list 'load-path "~/.claude/skills/org-roam-skill")
-(require 'org-roam-skill)
-```
-
-After adding, restart Emacs or eval the config. All functions are loaded once at startup and use the `org-roam-skill-` prefix (except diagnostic functions: `org-roam-doctor*`).
-
-## Implementation Notes
-
-### Note Creation (`org-roam-skill-create-note`)
-
-Creates files directly with proper org-roam structure (PROPERTIES block, ID, title, filetags). This is the recommended approach for programmatic note creation, as `org-roam-capture-` is designed for interactive use.
-
-**Auto-detection behavior:**
-1. Reads filename format from user's `org-roam-capture-templates`
-2. Expands template placeholders: `${slug}`, `${title}`, `%<time-format>`
-3. Creates UUID using `org-id-uuid` (standard org-mode function)
-4. Detects and applies head content from template to avoid duplication
-5. Writes file with proper org-roam structure
-6. Syncs database using `org-roam-db-sync`
-7. Returns the file path
-
-**Supports:**
-- Default org-roam templates (timestamp-slug format)
-- Timestamp-only templates (`%<%Y%m%d%H%M%S>.org`)
-- Custom templates with any valid placeholders
-
-### Key Implementation Details
+## Key Implementation Details
 
 **Tag sanitization:**
-- Org tags cannot contain hyphens (-)
-- Functions automatically replace hyphens with underscores
-- Example: `my-tag` → `my_tag`
+- Org tags cannot contain hyphens - functions auto-replace with underscores (`my-tag` → `my_tag`)
 
 **Node access:**
-- Use `org-roam-node-from-title-or-alias` for flexible title searching
-- Use `org-roam-node-from-id` when you have the node ID
+- Use `org-roam-node-from-title-or-alias` for title search (see `org-roam-skill-search.el:15`)
+- Use `org-roam-node-from-id` when you have the ID
 - Always use `org-roam-node-*` accessor functions
 - Use node IDs for linking (stable across file moves)
-
-**Attachments:**
-- Use `org-attach` functions via `org-roam-skill--with-node-context` helper
-- Files copied to `{org-attach-id-dir}/{node-id}/filename`
-- org-attach automatically manages ATTACH property
-
-**Formatting:**
-- All file-modifying operations auto-format using `org-roam-skill--format-buffer`
-- Includes table alignment via `org-table-align`
 
 **Database operations:**
 - Sync before queries if data might be stale: `(org-roam-db-sync)`
 - Prefer org-roam query functions over direct SQL
 
-## Diagnostics
+**Diagnostics:**
+- Full check: `emacsclient --eval "(org-roam-doctor)"`
+- Quick check: `emacsclient --eval "(org-roam-doctor-quick)"`
 
-**Verify setup:**
+For detailed implementation patterns, see `agent_docs/implementation.md`.
+
+## Testing & Development
+
+Uses [Buttercup](https://github.com/jorgenschaefer/emacs-buttercup) for testing and [Eldev](https://github.com/doublep/eldev) for test execution.
+
+**IMPORTANT**: All new functions and significant code changes require tests.
+
+**Quick commands:**
 ```bash
-emacsclient --eval "(org-roam-doctor)"
-```
-
-Checks: org-roam loaded, directory writable, database accessible, templates configured, required functions available.
-
-**Quick check:**
-```bash
-emacsclient --eval "(org-roam-doctor-quick)"
-```
-
-Returns `t` if OK, `nil` otherwise.
-
-## Testing
-
-This project uses [Buttercup](https://github.com/jorgenschaefer/emacs-buttercup) for testing and [Eldev](https://github.com/doublep/eldev) for test execution and dependency management.
-
-### Writing Tests for New Code
-
-**IMPORTANT**: All new functions and significant code changes must include tests.
-
-**Test file structure:**
-- Unit tests: `test/org-roam-skill-test.el`
-- Integration tests: `test/org-roam-skill-integration-test.el`
-- Test helpers: `test/test-helper.el`
-
-**Test patterns to follow:**
-
-```elisp
-(describe "function-name"
-  (it "describes what the test does"
-    (expect (function-call args) :to-equal expected-result))
-
-  (it "handles edge case"
-    (expect (function-call edge-case) :to-match "pattern")))
-```
-
-**Common test matchers:**
-- `:to-equal` - exact equality
-- `:to-match` - regex matching
-- `:to-be` - identity comparison (use for `t`/`nil`)
-- `:to-be-truthy` / `:to-be-falsy` - boolean checks
-- `:not :to-be` - negation
-
-**Testing file operations:**
-- Use `make-temp-file` for temporary files/directories
-- Always clean up in `unwind-protect`
-- Example:
-  ```elisp
-  (let ((temp-file (make-temp-file "test-" nil ".org")))
-    (unwind-protect
-        (progn
-          ;; Test code using temp-file
-          (expect (file-exists-p temp-file) :to-be t))
-      (when (file-exists-p temp-file)
-        (delete-file temp-file))))
-  ```
-
-**When to write tests:**
-- New functions (especially public API functions)
-- Bug fixes (add regression test)
-- Edge cases and error handling
-- Helper functions in `org-roam-skill-core.el`
-
-### Running Tests
-
-**Quick test run:**
-```bash
-make test
-```
-
-**Run with verbose output:**
-```bash
-eldev -C --unstable test
-```
-
-**Run specific test file:**
-```bash
-eldev -C --unstable test test/org-roam-skill-test.el
-```
-
-**Run tests matching pattern:**
-```bash
-eldev -C --unstable test --pattern "sanitize"
-```
-
-**Other useful commands:**
-```bash
-make prepare  # Install dependencies
+make test     # Run all tests
 make lint     # Run linting checks
-make clean    # Remove compiled files and cache
+make prepare  # Install dependencies
 ```
 
-**Before committing:**
-1. Run `make test` to ensure all tests pass
-2. Run `make lint` to check code style
-3. Add tests for any new functionality
-4. Update tests if changing existing behavior
+See `agent_docs/testing.md` for detailed patterns, test structure, and examples.
 
 ## Git Workflow
 
-**IMPORTANT**: All changes to this codebase must follow a branch-based workflow:
+**Branch-based workflow required:**
+1. Create feature branch (never commit to `master`)
+2. Make changes with tests (`make test` before commit)
+3. Push branch and create PR
+4. Wait for approval before merge
 
-1. **Create a feature branch** for your changes (never commit directly to `master`)
-2. **Make changes** and commit to the feature branch with proper attribution
-3. **Add tests** for new functionality (run `make test` before committing)
-4. **Push the branch** to the remote repository
-5. **Create a pull request** for review
-6. **Wait for PR approval** before merging to `master`
-
-This project requires PR approval before merging to the default branch.
-
-### Commit Attribution
-
-**OVERRIDE GLOBAL SETTING**: For this project, always include Claude as co-author in commit messages:
-
+**Commit format:**
 ```
-<conventional commit type>: <summary>
+<conventional type>: <summary>
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-Example:
-```
-docs: clarify tags parameter must be list not string
+## Additional Documentation
 
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-## Function Reference
-
-See `SKILL.md` for complete function reference and usage examples. All functions use `org-roam-skill-` prefix except diagnostics (`org-roam-doctor*`).
+- `SKILL.md` - Function reference and usage examples
+- `agent_docs/setup.md` - Package loading and Emacs configuration
+- `agent_docs/implementation.md` - Detailed implementation patterns
+- `agent_docs/testing.md` - Testing patterns and examples
