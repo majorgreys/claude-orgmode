@@ -46,13 +46,13 @@ curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev |
 **Run tests:**
 ```bash
 # Install dependencies (first time only)
-make prepare
+eldev -C --unstable prepare
 
 # Run all tests
-make test
+eldev -C --unstable test
 
 # Run linting
-make lint
+eldev -C --unstable lint
 ```
 
 This automatically:
@@ -174,7 +174,7 @@ jobs:
             --eval "(package-refresh-contents)" \
             --eval "(package-install 'org-roam)"
       - name: Run tests
-        run: make test
+        run: eldev -C --unstable test
 ```
 
 ## Troubleshooting
@@ -205,5 +205,5 @@ When adding new features to org-roam-skill:
 
 Run tests locally before committing:
 ```bash
-make test
+eldev -C --unstable test
 ```

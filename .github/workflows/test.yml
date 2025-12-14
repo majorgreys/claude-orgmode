@@ -33,7 +33,7 @@ jobs:
           sudo apt-get install -y pandoc
 
       - name: Install dependencies
-        run: make prepare
+        run: eldev -C --unstable prepare
 
       - name: Run tests
-        run: make test
+        run: eldev -C --unstable test

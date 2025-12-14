@@ -160,10 +160,10 @@ Uses [Buttercup](https://github.com/jorgenschaefer/emacs-buttercup) for testing 
 ### Quick Commands
 
 ```bash
-make test     # Run all tests
-make lint     # Run linting checks
-make prepare  # Install dependencies
-make clean    # Remove compiled files and cache
+eldev -C --unstable test     # Run all tests
+eldev -C --unstable lint     # Run linting checks
+eldev -C --unstable prepare  # Install dependencies
+eldev -C --unstable clean    # Remove compiled files and cache
 ```
 
 ### Test Structure
@@ -223,8 +223,8 @@ Always use temporary files and clean up:
 ### Pre-Commit Checklist
 
 Before committing changes:
-1. ✓ Run `make test` - all tests must pass
-2. ✓ Run `make lint` - no linting errors
+1. ✓ Run `eldev -C --unstable test` - all tests must pass
+2. ✓ Run `eldev -C --unstable lint` - no linting errors
 3. ✓ Add tests for new functionality
 4. ✓ Update tests if changing existing behavior
 5. ✓ Ensure tests are descriptive and clear
@@ -233,7 +233,7 @@ Before committing changes:
 
 **Branch-based workflow required:**
 1. Create feature branch (never commit to `master`)
-2. Make changes with tests (`make test` before commit)
+2. Make changes with tests (run `eldev -C --unstable test` before commit)
 3. Push branch and create PR
 4. Wait for approval before merge
 
@@ -256,7 +256,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - `README.md` - Developer/user documentation (not needed for AI agent)
 - `CLAUDE.md` - Project-specific development instructions (this file)
 - `test/` - Test suite (developer resources)
-- `.git/`, `.github/`, `Makefile`, `Eldev` - Development tools
+- `.git/`, `.github/`, `Eldev` - Development tools
 
 **Packaging command:**
 ```bash

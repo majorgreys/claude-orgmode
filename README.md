@@ -234,9 +234,9 @@ curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev |
 
 **Run tests:**
 ```bash
-make prepare  # Install dependencies (first time only)
-make test     # Run all tests
-make lint     # Run linting checks
+eldev -C --unstable prepare  # Install dependencies (first time only)
+eldev -C --unstable test     # Run all tests
+eldev -C --unstable lint     # Run linting checks
 ```
 
 **Prerequisites:**
@@ -248,7 +248,7 @@ make lint     # Run linting checks
 Feel free to extend this skill with additional functionality! When contributing:
 
 1. Add tests for new features
-2. Ensure all tests pass: `make test`
+2. Ensure all tests pass: `eldev -C --unstable test`
 3. Update documentation as needed
 4. Follow existing code style
 
