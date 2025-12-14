@@ -1,7 +1,7 @@
 ; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
 
 ;; Explicitly set main file
-(setf eldev-project-main-file "org-roam-skill.el")
+(setf eldev-project-main-file "elisp/org-roam-skill.el")
 
 ;; Use package archives
 (eldev-use-package-archive 'gnu)

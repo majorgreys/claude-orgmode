@@ -129,24 +129,30 @@ This auto-loads the skill package and checks your org-roam configuration, databa
 ```
 org-roam-skill/
 ├── SKILL.md                          # Main skill instructions
-├── CLAUDE.md                         # Project-specific instructions
+├── CLAUDE.md                         # Developer instructions
 ├── README.md                         # This file
-├── org-roam-skill.el                 # Main entry point (loads all modules)
-├── org-roam-skill-core.el            # Core utilities
-├── org-roam-skill-create.el          # Note creation functions
-├── org-roam-skill-search.el          # Search and query functions
-├── org-roam-skill-links.el           # Link management (backlinks, forward links)
-├── org-roam-skill-tags.el            # Tag management
-├── org-roam-skill-attach.el          # File attachment via org-attach
-├── org-roam-skill-utils.el           # Utility functions (orphans, stats)
-├── org-roam-skill-doctor.el          # Diagnostic functions
+├── elisp/                            # Emacs Lisp package code
+│   ├── org-roam-skill.el             # Main entry point (loads all modules)
+│   ├── org-roam-skill-core.el        # Core utilities
+│   ├── org-roam-skill-create.el      # Note creation functions
+│   ├── org-roam-skill-search.el      # Search and query functions
+│   ├── org-roam-skill-links.el       # Link management (backlinks, forward links)
+│   ├── org-roam-skill-tags.el        # Tag management
+│   ├── org-roam-skill-attach.el      # File attachment via org-attach
+│   ├── org-roam-skill-utils.el       # Utility functions (orphans, stats)
+│   └── org-roam-skill-doctor.el      # Diagnostic functions
+├── scripts/
+│   └── org-roam-eval                 # Auto-load wrapper script
 ├── test/                             # Test suite
 │   ├── org-roam-skill-test.el        # Unit tests
 │   ├── org-roam-skill-integration-test.el  # Integration tests
 │   └── test-helper.el                # Test utilities
-└── references/                       # Documentation
+└── references/                       # AI documentation
+    ├── functions.md                  # Function reference
+    ├── installation.md               # Setup guide
+    ├── troubleshooting.md            # Common issues
     ├── org-roam-api.md               # Org-roam API reference
-    └── emacsclient-usage.md          # How to use emacsclient
+    └── emacsclient-usage.md          # Emacsclient patterns
 ```
 
 ## Quick Start
@@ -181,13 +187,14 @@ Claude Code will automatically load the necessary helper scripts and perform the
 When you ask Claude Code about your notes, the skill:
 
 1. **Automatically activates** based on keywords in your question (org-roam, notes, backlinks, etc.)
-2. **Uses emacsclient** to communicate with your running Emacs daemon
-3. **Calls functions directly** from `org-roam-skill.el` (already loaded in memory)
-4. **Auto-detects your configuration** (filename format, templates, etc.)
-5. **Performs operations** using org-roam's built-in functions
-6. **Returns results** in a readable format
+2. **Uses the wrapper script** (`scripts/org-roam-eval`) to communicate with your running Emacs daemon
+3. **Auto-loads the package** from `elisp/` on first use (stays in memory for subsequent calls)
+4. **Calls functions directly** (already loaded in memory after first call)
+5. **Auto-detects your configuration** (filename format, templates, etc.)
+6. **Performs operations** using org-roam's built-in functions
+7. **Returns results** in a readable format
 
-No manual script loading or command memorization required - just ask naturally! All functions stay in memory after initial Emacs startup, making operations instant.
+No manual configuration or command memorization required - just ask naturally! The auto-load wrapper ensures the package is available, and all functions stay in memory for instant operations.
 
 ## Troubleshooting
 
