@@ -7,6 +7,9 @@
 (eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa)
 
+;; Add elisp directory to load path
+(add-to-list 'load-path (expand-file-name "elisp" eldev-project-dir))
+
 ;; Allow loading test helpers
 (eldev-add-loading-roots 'test "test")
 
