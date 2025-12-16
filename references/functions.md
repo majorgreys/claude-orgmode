@@ -18,7 +18,7 @@ Detailed documentation for all org-roam-skill functions.
 
 Create a new org-roam note with auto-detection of template format.
 
-**Signature**: `(org-roam-skill-create-note TITLE &key tags content content-file keep-file no-format)`
+**Signature**: `(org-roam-skill-create-note TITLE &key tags content content-file keep-file)`
 
 **Parameters:**
 - `TITLE` (string, required): The note title
@@ -26,7 +26,6 @@ Create a new org-roam note with auto-detection of template format.
 - `:content` (string, optional): Initial content (for small/simple content)
 - `:content-file` (string, optional): Path to file containing content (for large content)
 - `:keep-file` (boolean, optional): If `t`, prevent automatic deletion of `:content-file`
-- `:no-format` (boolean, optional): If `t`, skip content formatting
 
 **Examples:**
 
@@ -54,24 +53,16 @@ EOF
 # Temp file automatically deleted
 ```
 
-**Content Formatting:**
+**Content Format:**
 
-By default, content is automatically formatted to org-mode:
-- **Markdown → Org**: `# Heading` → `* Heading`, `` ```code``` `` → `#+begin_src`
-- **Org → Org**: Validates and normalizes syntax
-- **Plain text**: Passes through unchanged
+Content should be in org-mode format. For markdown conversion or general org-mode formatting, use the `orgmode` skill.
 
-Format detection heuristics:
-- Detects org: `* Heading`, `#+begin_src`, `:PROPERTIES:`
-- Defaults to markdown for: `# Heading`, plain text
-
-Disable formatting:
+Example workflow:
 ```bash
-# Method 1: Use :no-format parameter
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\" :content \"raw\" :no-format t)"
-
-# Method 2: Prefix content with NO_FORMAT:
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\" :content \"NO_FORMAT:raw text\")"
+# Step 1: Convert markdown to org (orgmode skill)
+# Step 2: Create roam note with org content (this skill)
+~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+  "(org-roam-skill-create-note \"Title\" :content \"* Org heading\")"
 ```
 
 **Automatic Behaviors:**

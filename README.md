@@ -24,6 +24,20 @@ The skill works with **Claude Code only** (not Claude Desktop, which uses a diff
 - Analyze your knowledge graph
 - Diagnose org-roam setup issues
 
+## Version 2.0 Breaking Changes
+
+**⚠️ Important**: Version 2.0 removes general org-mode formatting functionality. For markdown conversion and general org-mode operations, use the `orgmode` skill.
+
+**What changed:**
+- Removed automatic markdown→org conversion
+- Removed `:no-format` parameter from `org-roam-skill-create-note`
+- Removed `format-org-roam-note` function
+
+**What to do:**
+Content should now be in org-mode format. For markdown conversion, use the orgmode skill before creating notes.
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed migration guide.
+
 ## Prerequisites
 
 1. **Claude Code** installed and running

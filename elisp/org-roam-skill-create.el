@@ -16,27 +16,28 @@
 (require 'org-roam-skill-core)
 
 ;;;###autoload
-(cl-defun org-roam-skill-create-note (title &key tags content content-file keep-file no-format)
+(cl-defun org-roam-skill-create-note (title &key tags content content-file keep-file)
   "Create a new org-roam note with TITLE, optional TAGS and CONTENT.
-Automatically detect filename format and head content from capture templates.
-Work with any org-roam configuration - no customization required.
+Automatically detect filename format and head content from capture
+templates. Work with any org-roam configuration - no customization
+required.
 
-CONTENT can be provided in two ways:
-- :content STRING - content as a string (for small/simple content)
-- :content-file PATH - path to file containing content (recommended for large content)
+TAGS is a list of tag strings.
+CONTENT can be provided as a string (small content) or via
+CONTENT-FILE path (recommended for large content). If both are
+provided, CONTENT-FILE takes priority.
 
-If both are provided, :content-file takes priority.
+CONTENT FORMAT:
+Content should be in `org-mode' format. For markdown conversion or
+general `org-mode' formatting operations, use the orgmode skill before
+calling this function. This skill focuses on org-roam-specific
+operations (note creation, database sync, node linking).
 
 TEMP FILE CLEANUP:
-The :content-file is automatically deleted after processing if it appears to be
-a temporary file (in /tmp/ or similar directory). To prevent deletion, pass
-:keep-file t. This eliminates the need for manual cleanup in shell scripts.
-
-CONTENT is automatically formatted to org-mode syntax using pandoc unless:
-- NO-FORMAT is non-nil, or
-- CONTENT starts with 'NO_FORMAT:' prefix
-
-This handles both markdown and org-mode input, normalizing to clean org format.
+CONTENT-FILE is automatically deleted after processing if it appears
+to be a temporary file (in /tmp/ or similar directory). To prevent
+deletion, pass KEEP-FILE as t. This eliminates the need for manual
+cleanup in shell scripts.
 
 Return the file path of the created note."
   (let* ((file-name (org-roam-skill--expand-filename title))
@@ -47,10 +48,7 @@ Return the file path of the created note."
          (actual-content (cond
                           (content-file (org-roam-skill--read-content-file content-file))
                           (content content)
-                          (t nil)))
-         ;; Format content using pandoc (handles markdown/org input)
-         (formatted-content (when actual-content
-                              (org-roam-skill--format-content actual-content no-format))))
+                          (t nil))))
 
     (unwind-protect
         (progn
@@ -86,10 +84,10 @@ Return the file path of the created note."
             ;; Add blank line after frontmatter
             (insert "\n")
 
-            ;; Insert formatted content if provided
-            (when formatted-content
-              (insert formatted-content)
-              (unless (string-suffix-p "\n" formatted-content)
+            ;; Insert content if provided (user responsible for `org-mode' formatting)
+            (when actual-content
+              (insert actual-content)
+              (unless (string-suffix-p "\n" actual-content)
                 (insert "\n"))))
 
           ;; Sync database to register the new note

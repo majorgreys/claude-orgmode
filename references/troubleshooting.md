@@ -215,6 +215,28 @@ Use minimal head in template:
 
 The `"${title}"` creates the file, org-roam adds `#+title:` automatically.
 
+### Content Not Being Formatted
+
+**Symptoms:**
+- Markdown content appears as-is in org-roam notes
+- Content is not converted to org-mode format
+
+**Explanation:**
+As of v2.0, this skill no longer performs automatic markdown→org conversion. This is intentional to maintain separation of concerns.
+
+**Solution:**
+
+Use the `orgmode` skill for general org-mode formatting before creating roam notes:
+
+```bash
+# Step 1: Convert markdown to org (orgmode skill)
+# Step 2: Create roam note with org content (this skill)
+~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+  "(org-roam-skill-create-note \"Title\" :content \"* Org content\")"
+```
+
+This skill focuses on org-roam-specific operations (note creation, database sync, node linking). For general org-mode formatting, use the `orgmode` skill.
+
 ## Search Issues
 
 ### No Results Found

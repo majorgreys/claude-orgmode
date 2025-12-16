@@ -108,39 +108,5 @@ Return a plist with various statistics."
                                       (/ (float total-links) total-nodes)
                                     0))))
 
-(defun org-roam-skill--format-buffer ()
-  "Format the current org buffer, aligning tables and cleaning up structure.
-Should be called with point in an org-mode buffer."
-  (save-excursion
-    ;; Align all tables in the buffer
-    (goto-char (point-min))
-    (while (re-search-forward "^[ \t]*|" nil t)
-      (beginning-of-line)
-      (when (org-at-table-p)
-        (org-table-align))
-      (forward-line 1))
-
-    ;; Clean up spacing around headings and content
-    (org-mode-restart)))
-
-;;;###autoload
-(defun format-org-roam-note (title-or-id)
-  "Format the org-roam note identified by TITLE-OR-ID.
-Aligns tables and cleans up structure. Returns t on success."
-  (let* ((node (if (and (stringp title-or-id)
-                        (string-match-p "^[0-9a-f]\\{8\\}-" title-or-id))
-                   (org-roam-node-from-id title-or-id)
-                 (org-roam-node-from-title-or-alias title-or-id)))
-         (file (when node (org-roam-node-file node))))
-    (unless node
-      (error "Node not found: %s" title-or-id))
-    (unless (file-exists-p file)
-      (error "File not found: %s" file))
-
-    (with-current-buffer (find-file-noselect file)
-      (org-roam-skill--format-buffer)
-      (save-buffer)
-      t)))
-
 (provide 'org-roam-skill-utils)
 ;;; org-roam-skill-utils.el ends here

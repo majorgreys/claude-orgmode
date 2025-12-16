@@ -3,7 +3,7 @@
 ;; Copyright (C) 2025
 
 ;; Author: Tahir Butt
-;; Version: 1.0.0
+;; Version: 2.0.0
 ;; Package-Requires: ((emacs "27.2") (org-roam "2.0.0"))
 ;; Keywords: outlines convenience
 ;; URL: https://github.com/majorgreys/org-roam-skill

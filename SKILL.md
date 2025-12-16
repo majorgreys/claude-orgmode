@@ -111,14 +111,19 @@ EOF
 - ✅ Correct: `:tags '("tag")` (list)
 - ✅ Correct: `:tags '("tag1" "tag2")` (multiple tags)
 
-**Content formatting:**
+**Content format:**
 
-By default, content is automatically converted to org-mode:
-- Markdown → Org: `# Heading` → `* Heading`
-- Org → Org: Validates and normalizes
-- Plain text → Unchanged
+Content should be in org-mode format. For markdown conversion or general org-mode formatting, use the `orgmode` skill:
 
-Disable with `:no-format t` or prefix content with `NO_FORMAT:`.
+```bash
+# Example workflow:
+# 1. Convert markdown to org (orgmode skill)
+# 2. Create roam note with org content (this skill)
+~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+  "(org-roam-skill-create-note \"Title\" :content \"* Org content\")"
+```
+
+For general org-mode operations (formatting, conversion, validation), see the **orgmode** skill. This skill focuses on org-roam-specific operations: note creation, database sync, node linking, and graph management.
 
 See **references/functions.md** for detailed parameter documentation.
 
