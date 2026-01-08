@@ -1,13 +1,9 @@
 ---
 name: roam
 description: |
-  Comprehensive org-mode formatting and org-roam note management skill. Provides org-mode syntax knowledge for any .org file, plus roam-specific operations via emacsclient.
+  Org-mode formatting and org-roam note management via emacsclient. Never use Read/Write/Edit on roam notes directly.
 
-  **ALWAYS USE THIS SKILL** when user mentions "roam note", "org-roam", "org-mode", or references .org files—especially those in `/roam/` or `/org-roam/` directories.
-
-  Use this skill for: (1) org-mode syntax and formatting guidance, (2) creating/searching/linking roam notes, (3) managing Zettelkasten-style knowledge systems.
-
-  **NEVER use Read/Write/Edit tools directly on roam notes** - they bypass database sync and break org-roam functionality. For general .org files outside roam directories, direct file tools are acceptable.
+  Triggers: roam note, org-roam, org-mode, .org files, Zettelkasten, backlinks
 ---
 
 # Org-mode and Org-roam Skill
