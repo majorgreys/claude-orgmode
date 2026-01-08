@@ -31,12 +31,12 @@ Create a new org-roam note with auto-detection of template format.
 
 Basic note:
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"My Note\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"My Note\")"
 ```
 
 With tags and content:
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"React Hooks\" :tags '(\"javascript\" \"react\") :content \"Notes about hooks\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"React Hooks\" :tags '(\"javascript\" \"react\") :content \"Notes about hooks\")"
 ```
 
 Large content via file:
@@ -49,7 +49,7 @@ Content here
 * Section 2
 More content
 EOF
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Large Note\" :content-file \"$TEMP\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"Large Note\" :content-file \"$TEMP\")"
 # Temp file automatically deleted
 ```
 
@@ -61,7 +61,7 @@ Example workflow:
 ```bash
 # Step 1: Convert markdown to org (orgmode skill)
 # Step 2: Create roam note with org content (this skill)
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval \
   "(org-roam-skill-create-note \"Title\" :content \"* Org heading\")"
 ```
 
@@ -88,7 +88,7 @@ Search notes by title (case-insensitive, partial match).
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-title \"react\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-title \"react\")"
 ```
 
 **Returns**: List of `(id title file)` tuples.
@@ -101,7 +101,7 @@ Search notes by tag.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-tag \"javascript\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-tag \"javascript\")"
 ```
 
 **Returns**: List of `(id title file)` tuples.
@@ -114,7 +114,7 @@ Search notes by content (full-text search).
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-content \"functional programming\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-content \"functional programming\")"
 ```
 
 **Returns**: List of `(id title file)` tuples with matching content.
@@ -129,7 +129,7 @@ Find notes that link TO the specified note.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-title \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-title \"React\")"
 ```
 
 **Returns**: List of `(id title file)` tuples for notes linking to this note.
@@ -142,7 +142,7 @@ Find notes that link TO the specified note (by ID).
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-id \"abc123-def456\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-id \"abc123-def456\")"
 ```
 
 ### org-roam-skill-create-bidirectional-link
@@ -153,7 +153,7 @@ Create links between two notes (both directions).
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"React Hooks\" \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"React Hooks\" \"React\")"
 ```
 
 Creates:
@@ -168,7 +168,7 @@ Insert a link in one note pointing to another.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-insert-link-in-note \"My Note\" \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-insert-link-in-note \"My Note\" \"React\")"
 ```
 
 Adds link to "React" at the end of "My Note".
@@ -183,7 +183,7 @@ List all unique tags across all notes.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-list-all-tags)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-list-all-tags)"
 ```
 
 **Returns**: Sorted list of all unique tags.
@@ -196,7 +196,7 @@ Add a tag to a note.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-add-tag \"My Note\" \"important\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-add-tag \"My Note\" \"important\")"
 ```
 
 ### org-roam-skill-remove-tag
@@ -207,7 +207,7 @@ Remove a tag from a note.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-remove-tag \"My Note\" \"draft\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-remove-tag \"My Note\" \"draft\")"
 ```
 
 ## Attachment Management
@@ -220,7 +220,7 @@ Attach a file to a note (copies file to attachment directory).
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-attach-file \"My Note\" \"/path/to/document.pdf\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-attach-file \"My Note\" \"/path/to/document.pdf\")"
 ```
 
 **Behavior:**
@@ -236,7 +236,7 @@ List all attachments for a note.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-list-attachments \"My Note\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-list-attachments \"My Note\")"
 ```
 
 **Returns**: List of attachment filenames.
@@ -249,7 +249,7 @@ Get full path to a specific attachment.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(get-attachment-path \"My Note\" \"document.pdf\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(get-attachment-path \"My Note\" \"document.pdf\")"
 ```
 
 ### delete-note-attachment
@@ -260,7 +260,7 @@ Delete an attachment from a note.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(delete-note-attachment \"My Note\" \"old-file.pdf\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(delete-note-attachment \"My Note\" \"old-file.pdf\")"
 ```
 
 ### get-note-attachment-dir
@@ -271,7 +271,7 @@ Get the attachment directory path for a note.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(get-note-attachment-dir \"My Note\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(get-note-attachment-dir \"My Note\")"
 ```
 
 **Returns**: Path to note's attachment directory.
@@ -286,7 +286,7 @@ Check if org-roam is properly configured.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-check-setup)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-check-setup)"
 ```
 
 **Returns**: Status message about setup (directory exists, database initialized, etc.).
@@ -299,7 +299,7 @@ Get statistics about the knowledge graph.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-get-graph-stats)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-get-graph-stats)"
 ```
 
 **Returns**: Statistics like total notes, total links, tags count, etc.
@@ -312,7 +312,7 @@ Find notes with no backlinks or forward links.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-find-orphan-notes)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-find-orphan-notes)"
 ```
 
 **Returns**: List of `(id title file)` tuples for orphaned notes.
@@ -327,7 +327,7 @@ Comprehensive diagnostic check of org-roam setup.
 
 **Example:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-doctor)"
 ```
 
 **Checks:**

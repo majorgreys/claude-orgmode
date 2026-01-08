@@ -125,7 +125,7 @@ emacs --daemon
 **Run diagnostic to verify org-roam setup:**
 
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-doctor)"
 ```
 
 This auto-loads the skill package and checks your org-roam configuration, database, and templates.

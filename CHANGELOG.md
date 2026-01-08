@@ -29,7 +29,7 @@ a clear separation of concerns with the orgmode skill.
 
 Before (v1.x):
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval \
   "(org-roam-skill-create-note \"Title\" :content \"# Markdown\")"
 ```
 
@@ -39,7 +39,7 @@ After (v2.x):
 orgmode_content=$(convert-markdown-to-org "# Markdown")
 
 # Then create roam note
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval \
   "(org-roam-skill-create-note \"Title\" :content \"$orgmode_content\")"
 ```
 
@@ -47,7 +47,7 @@ orgmode_content=$(convert-markdown-to-org "# Markdown")
 
 Before (v1.x):
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval \
   "(format-org-roam-note \"Note Title\")"
 ```
 

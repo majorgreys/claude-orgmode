@@ -42,32 +42,32 @@ This skill provides comprehensive org-mode knowledge and org-roam note managemen
 
 **Using the skill:**
 
-All operations use the auto-loading wrapper `~/.claude/skills/org-roam-skill/scripts/org-roam-eval`:
+All operations use the auto-loading wrapper `${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval`:
 
 ```bash
 # Create note (tags MUST be a list, not string)
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\" :tags '(\"tag\") :content \"text\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\" :tags '(\"tag\") :content \"text\")"
 
 # Create with large content (recommended for >1KB content)
 TEMP=$(mktemp -t org-roam-content.XXXXXX)
 echo "Large content..." > "$TEMP"
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\" :content-file \"$TEMP\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\" :content-file \"$TEMP\")"
 # Temp file auto-deleted!
 
 # Search
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-title \"search-term\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-title \"search-term\")"
 
 # Backlinks
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-title \"Note Title\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-title \"Note Title\")"
 
 # Link notes
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"Note A\" \"Note B\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"Note A\" \"Note B\")"
 
 # Attach file
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-attach-file \"Note Title\" \"/path/to/file\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-attach-file \"Note Title\" \"/path/to/file\")"
 
 # Diagnostics
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-doctor)"
 ```
 
 **Key principle**: Package auto-loads on first call, then stays in memory - no repeated loading overhead.
@@ -78,12 +78,12 @@ echo "Large content..." > "$TEMP"
 
 **Simple note:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Note Title\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"Note Title\")"
 ```
 
 **With tags and content:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"React Hooks\" :tags '(\"javascript\" \"react\") :content \"Brief notes here\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"React Hooks\" :tags '(\"javascript\" \"react\") :content \"Brief notes here\")"
 ```
 
 **With large content (recommended for complex/large content):**
@@ -103,7 +103,7 @@ More content.
 EOF
 
 # Create note (temp file is automatically deleted)
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"My Note\" :tags '(\"project\") :content-file \"$TEMP\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"My Note\" :tags '(\"project\") :content-file \"$TEMP\")"
 ```
 
 **Critical: Tags must be a list:**
@@ -119,7 +119,7 @@ Content should be in org-mode format. For markdown conversion or general org-mod
 # Example workflow:
 # 1. Convert markdown to org (orgmode skill)
 # 2. Create roam note with org content (this skill)
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval \
   "(org-roam-skill-create-note \"Title\" :content \"* Org content\")"
 ```
 
@@ -131,34 +131,34 @@ See **references/functions.md** for detailed parameter documentation.
 
 **By title:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-title \"react\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-title \"react\")"
 ```
 
 **By tag:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-tag \"javascript\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-tag \"javascript\")"
 ```
 
 **By content:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-search-by-content \"functional programming\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-search-by-content \"functional programming\")"
 ```
 
 **List all tags:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-list-all-tags)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-list-all-tags)"
 ```
 
 ### Workflow C: Managing Links
 
 **Find backlinks (notes linking TO this note):**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-title \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-get-backlinks-by-title \"React\")"
 ```
 
 **Create bidirectional links:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"React Hooks\" \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"React Hooks\" \"React\")"
 ```
 
 This creates:
@@ -167,19 +167,19 @@ This creates:
 
 **Insert one-way link:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-insert-link-in-note \"Source Note\" \"Target Note\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-insert-link-in-note \"Source Note\" \"Target Note\")"
 ```
 
 ### Workflow D: File Attachments
 
 **Attach file:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-attach-file \"My Note\" \"/path/to/document.pdf\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-attach-file \"My Note\" \"/path/to/document.pdf\")"
 ```
 
 **List attachments:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-list-attachments \"My Note\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-list-attachments \"My Note\")"
 ```
 
 Attachments use org-mode's standard `org-attach` system.
@@ -190,17 +190,17 @@ User says: "Create a note about React Hooks and link it to my React note"
 
 **Step 1: Search for existing note**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-node-from-title-or-alias \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-node-from-title-or-alias \"React\")"
 ```
 
 **Step 2: Create new note**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"React Hooks\" :tags '(\"javascript\" \"react\") :content \"Notes about React Hooks\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"React Hooks\" :tags '(\"javascript\" \"react\") :content \"Notes about React Hooks\")"
 ```
 
 **Step 3: Create bidirectional links**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"React Hooks\" \"React\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-bidirectional-link \"React Hooks\" \"React\")"
 ```
 
 **Step 4: Show user the result**
@@ -208,7 +208,7 @@ Present the created note path and confirm links were established.
 
 ## Using the Auto-Load Wrapper
 
-All operations use `~/.claude/skills/org-roam-skill/scripts/org-roam-eval` which:
+All operations use `${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval` which:
 1. Auto-loads `org-roam-skill` package on first call
 2. Connects to running Emacs daemon
 3. Executes the elisp expression
@@ -217,12 +217,12 @@ After first call, functions stay in memory - no loading overhead.
 
 **Find org-roam directory:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "org-roam-directory"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "org-roam-directory"
 ```
 
 **Sync database (if needed):**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-db-sync)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-db-sync)"
 ```
 
 ## Available Functions
@@ -271,7 +271,7 @@ See **references/functions.md** for complete function documentation with all par
 
 **Quick diagnostic:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-doctor)"
 ```
 
 ## Parsing emacsclient Output

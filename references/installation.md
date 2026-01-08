@@ -46,7 +46,7 @@ Should return `t`. If not, install org-roam in Emacs.
 ### Find your org-roam directory
 
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "org-roam-directory"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "org-roam-directory"
 ```
 
 Returns your configured org-roam directory path.
@@ -54,7 +54,7 @@ Returns your configured org-roam directory path.
 ### Run diagnostic
 
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-doctor)"
 ```
 
 This checks your org-roam configuration, database, and templates.
@@ -134,7 +134,7 @@ Ensure org-roam loads on startup:
 Manually sync:
 
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-db-sync)"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-db-sync)"
 ```
 
 ## Upgrading the Skill

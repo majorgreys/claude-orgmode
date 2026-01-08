@@ -53,19 +53,23 @@ emacs --daemon
 
 1. Verify load-path is correct:
    ```bash
-   ls ~/.claude/skills/org-roam-skill/org-roam-skill.el
+   ls ${CLAUDE_PLUGIN_ROOT}/elisp/org-roam-skill.el
    ```
 
 2. Check Emacs configuration has correct path:
    ```elisp
-   ;; For Doom
+   ;; For Doom (replace <PLUGIN_PATH> with actual plugin location)
    (use-package! org-roam-skill
-     :load-path "~/.claude/skills/org-roam-skill")
+     :load-path "<PLUGIN_PATH>/elisp")
 
-   ;; For vanilla
-   (add-to-list 'load-path "~/.claude/skills/org-roam-skill")
+   ;; For vanilla (replace <PLUGIN_PATH> with actual plugin location)
+   (add-to-list 'load-path "<PLUGIN_PATH>/elisp")
    (require 'org-roam-skill)
    ```
+
+   Note: `<PLUGIN_PATH>` is the skill's installation directory. The auto-load
+   wrapper (`scripts/org-roam-eval`) handles this automatically—manual Emacs
+   configuration is only needed if auto-loading fails.
 
 3. Restart Emacs daemon:
    ```bash
@@ -231,7 +235,7 @@ Use the `orgmode` skill for general org-mode formatting before creating roam not
 ```bash
 # Step 1: Convert markdown to org (orgmode skill)
 # Step 2: Create roam note with org content (this skill)
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval \
   "(org-roam-skill-create-note \"Title\" :content \"* Org content\")"
 ```
 

@@ -38,7 +38,7 @@ Package auto-loads on first use via `scripts/org-roam-eval` wrapper - no manual 
 
 **Usage pattern:**
 ```bash
-~/.claude/skills/org-roam-skill/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\")"
 ```
 
 ## Key Implementation Details
@@ -260,7 +260,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 **Packaging command:**
 ```bash
-cd ~/dev/majorgreys && zip -r org-roam-skill.skill org-roam-skill/ -x @org-roam-skill/.skillignore
+# From the skill directory:
+zip -r ../org-roam-skill.skill . -x @.skillignore
 ```
 
 ## Additional Documentation
