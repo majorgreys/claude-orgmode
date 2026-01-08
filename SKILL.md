@@ -1,5 +1,5 @@
 ---
-name: Org-mode and Org-roam
+name: roam
 description: |
   Comprehensive org-mode formatting and org-roam note management skill. Provides org-mode syntax knowledge for any .org file, plus roam-specific operations via emacsclient.
 
