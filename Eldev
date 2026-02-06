@@ -7,6 +7,9 @@
 (eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa)
 
+;; Additional dependencies not auto-detected
+(eldev-add-extra-dependencies 'test 'org-download)
+
 ;; Add elisp directory to load path
 (add-to-list 'load-path (expand-file-name "elisp" eldev-project-dir))
 

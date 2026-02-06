@@ -7,11 +7,13 @@
 
 ;;; Commentary:
 ;; Functions for attaching files to org-roam notes using org-attach.
+;; Also supports attaching files with links in a References section via org-download.
 
 ;;; Code:
 
 (require 'org-roam)
 (require 'org-attach)
+(require 'org-download)
 (require 'org-roam-skill-core)
 
 ;;;###autoload
@@ -99,6 +101,60 @@ Return the directory path, or nil if no attachments exist."
    title-or-id
    (lambda (node)
      (org-attach-dir))))
+
+;;;###autoload
+(defun org-roam-skill-attach-file-to-references (title-or-id path)
+  "Attach file from PATH and insert link in the References section of note TITLE-OR-ID.
+
+Creates or appends to a '* References' section at the end of the file with
+a link to the attached file. Works with local files and URLs.
+
+Supports:
+- Local file paths: /path/to/file.pdf
+- URLs: https://example.com/file.pdf
+- Base64 data URIs for images"
+  (org-roam-skill--with-node-context
+   title-or-id
+   (lambda (node)
+     (let ((original-point (point)))
+       (condition-case-unless-debug e
+           (let* ((raw-uri (url-unhex-string path))
+                  (new-path (expand-file-name (org-download--fullname raw-uri)))
+                  (_ (if (string-match-p (concat "^" (regexp-opt '("http" "https" "nfs" "ftp" "file")) ":/") path)
+                         (url-copy-file raw-uri new-path)
+                       (copy-file path new-path)))
+                  (rel-path (file-relative-name new-path (file-name-directory (buffer-file-name))))
+                  (file-name (file-name-nondirectory new-path)))
+
+             ;; Navigate to end of file and find/create References section
+             (goto-char (point-max))
+
+             ;; Try to find existing "* References" section
+             (if (re-search-backward "^\\* References" nil t)
+                 (end-of-line)
+               ;; Create new section if it doesn't exist
+               (goto-char (point-max))
+               (unless (bolp) (newline))
+               (insert "\n* References")
+               (end-of-line))
+
+             ;; Append the link
+             (newline)
+             (insert (format "- [[file:%s][%s]]" rel-path file-name))
+
+             ;; Format and save
+             (org-roam-skill--format-buffer)
+             (save-buffer)
+
+             ;; Return info
+             (list :path new-path
+                   :relative-path rel-path
+                   :filename file-name
+                   :node-title (org-roam-node-title node)))
+
+         (error
+          (goto-char original-point)
+          (error "Failed to attach file: %s" (error-message-string e))))))))
 
 (provide 'org-roam-skill-attach)
 ;;; org-roam-skill-attach.el ends here
