@@ -4,6 +4,15 @@ description: |
   Org-mode formatting and org-roam note management via emacsclient. Never use Read/Write/Edit on roam notes directly.
 
   Triggers: roam note, org-roam, org-mode, .org files, Zettelkasten, backlinks
+allowed-tools:
+  - Bash(${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval:*)
+  - Bash(git status:*)
+  - Bash(git add:*)
+  - Bash(git commit:*)
+  - Bash(git diff:*)
+  - Bash(git log:*)
+  - Bash(mktemp:*)
+  - Bash(emacsclient:*)
 ---
 
 # Org-mode and Org-roam Skill
@@ -172,17 +181,27 @@ ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-insert-
 
 ### Workflow D: File Attachments
 
-**Attach file:**
+**Two attachment methods:**
+
+1. **Attach to References section** (preferred - creates visible link):
+```bash
+${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-attach-file-to-references \"My Note\" \"/path/to/document.pdf\")"
+```
+- Copies file via org-download
+- Creates/appends "* References" section with link
+- Supports local files, URLs, and base64 data URIs
+
+2. **Attach via org-attach** (stores in attachment dir):
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-attach-file \"My Note\" \"/path/to/document.pdf\")"
 ```
+- Uses org-mode's standard `org-attach` system
+- No visible link in note body
 
 **List attachments:**
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-list-attachments \"My Note\")"
 ```
-
-Attachments use org-mode's standard `org-attach` system.
 
 ### Workflow E: Complete Example
 
@@ -242,7 +261,8 @@ All functions use `org-roam-skill-` prefix:
 - `org-roam-skill-remove-tag` - Remove tag from note
 
 **Attachments:**
-- `org-roam-skill-attach-file` - Attach file to note
+- `org-roam-skill-attach-file-to-references` - Attach file and add link in References section
+- `org-roam-skill-attach-file` - Attach file via org-attach system
 - `org-roam-skill-list-attachments` - List attachments
 
 **Utilities:**
