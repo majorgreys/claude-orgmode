@@ -58,7 +58,8 @@ EMACS_SOCKET_NAME=myemacs claude-orgmode-eval "(claude-orgmode-doctor)"
 ### As a Claude Code Plugin
 
 ```bash
-claude plugin add majorgreys/claude-orgmode
+claude plugin marketplace add majorgreys/claude-orgmode
+claude plugin install claude-orgmode@claude-orgmode
 ```
 
 ### Manual Installation
