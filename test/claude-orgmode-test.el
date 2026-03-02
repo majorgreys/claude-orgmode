@@ -505,5 +505,171 @@
         (when (file-exists-p org-roam-directory)
           (delete-directory org-roam-directory t))))))
 
+;;; Vulpea Backend Dispatch Tests (mocked)
+;;
+;; Since vulpea is not available in the test environment, we mock all
+;; vulpea functions and verify that the backend dispatch calls the
+;; correct vulpea function when the backend is set to 'vulpea.
+
+;; Declare vulpea variables as special so `let' binds them dynamically
+;; (required because this file uses lexical-binding and `boundp' checks
+;; the dynamic binding).
+(defvar vulpea-db-sync-directories)
+(defvar vulpea-db-location)
+
+(describe "vulpea backend dispatch"
+  :var (mock-note)
+
+  (before-each
+    ;; Create a mock vulpea note (just a plist we can pass around)
+    (setq mock-note '(:id "vulpea-uuid-123"
+                      :title "Vulpea Test Note"
+                      :path "/notes/test.org"
+                      :tags ("emacs" "lisp")
+                      :aliases ("VTN")
+                      :level 0))
+
+    ;; Define mock vulpea functions that return predictable values
+    (fset 'vulpea-note-id (lambda (note) (plist-get note :id)))
+    (fset 'vulpea-note-title (lambda (note) (plist-get note :title)))
+    (fset 'vulpea-note-path (lambda (note) (plist-get note :path)))
+    (fset 'vulpea-note-tags (lambda (note) (plist-get note :tags)))
+    (fset 'vulpea-note-aliases (lambda (note) (plist-get note :aliases)))
+    (fset 'vulpea-note-level (lambda (note) (plist-get note :level)))
+    (fset 'vulpea-db-get-by-id (lambda (id) (when (equal id "vulpea-uuid-123") mock-note)))
+    (fset 'vulpea-db-search-by-title (lambda (title) (when (equal title "Vulpea Test Note") (list mock-note))))
+    (fset 'vulpea-db-query (lambda () (list mock-note)))
+    (fset 'vulpea-db-sync-full-scan (lambda () t))
+    (fset 'vulpea-tags-add (lambda (note tag) t))
+    (fset 'vulpea-tags-remove (lambda (note tag) t))
+    (fset 'vulpea-db-query-links-to (lambda (id) nil))
+    (fset 'vulpea-create (lambda (title _meta &rest args) mock-note)))
+
+  (describe "claude-orgmode--backend-node-id"
+    (it "dispatches to vulpea-note-id"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-note-id :and-call-through)
+        (expect (claude-orgmode--backend-node-id mock-note)
+                :to-equal "vulpea-uuid-123")
+        (expect 'vulpea-note-id :to-have-been-called-with mock-note))))
+
+  (describe "claude-orgmode--backend-node-title"
+    (it "dispatches to vulpea-note-title"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-note-title :and-call-through)
+        (expect (claude-orgmode--backend-node-title mock-note)
+                :to-equal "Vulpea Test Note")
+        (expect 'vulpea-note-title :to-have-been-called-with mock-note))))
+
+  (describe "claude-orgmode--backend-node-file"
+    (it "dispatches to vulpea-note-path"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-note-path :and-call-through)
+        (expect (claude-orgmode--backend-node-file mock-note)
+                :to-equal "/notes/test.org")
+        (expect 'vulpea-note-path :to-have-been-called-with mock-note))))
+
+  (describe "claude-orgmode--backend-node-tags"
+    (it "dispatches to vulpea-note-tags"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-note-tags :and-call-through)
+        (expect (claude-orgmode--backend-node-tags mock-note)
+                :to-equal '("emacs" "lisp"))
+        (expect 'vulpea-note-tags :to-have-been-called-with mock-note))))
+
+  (describe "claude-orgmode--backend-node-aliases"
+    (it "dispatches to vulpea-note-aliases"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-note-aliases :and-call-through)
+        (expect (claude-orgmode--backend-node-aliases mock-note)
+                :to-equal '("VTN"))
+        (expect 'vulpea-note-aliases :to-have-been-called-with mock-note))))
+
+  (describe "claude-orgmode--backend-node-level"
+    (it "dispatches to vulpea-note-level"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-note-level :and-call-through)
+        (expect (claude-orgmode--backend-node-level mock-note)
+                :to-equal 0)
+        (expect 'vulpea-note-level :to-have-been-called-with mock-note))))
+
+  (describe "claude-orgmode--backend-node-from-id"
+    (it "dispatches to vulpea-db-get-by-id"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-db-get-by-id :and-call-through)
+        (expect (claude-orgmode--backend-node-from-id "vulpea-uuid-123")
+                :to-equal mock-note)
+        (expect 'vulpea-db-get-by-id :to-have-been-called-with "vulpea-uuid-123"))))
+
+  (describe "claude-orgmode--backend-node-from-title"
+    (it "dispatches to vulpea-db-search-by-title"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-db-search-by-title :and-call-through)
+        (expect (claude-orgmode--backend-node-from-title "Vulpea Test Note")
+                :to-equal mock-note)
+        (expect 'vulpea-db-search-by-title :to-have-been-called-with "Vulpea Test Note"))))
+
+  (describe "claude-orgmode--backend-node-list"
+    (it "dispatches to vulpea-db-query"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-db-query :and-call-through)
+        (expect (claude-orgmode--backend-node-list)
+                :to-equal (list mock-note))
+        (expect 'vulpea-db-query :to-have-been-called))))
+
+  (describe "claude-orgmode--backend-db-sync"
+    (it "dispatches to vulpea-db-sync-full-scan"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-db-sync-full-scan :and-call-through)
+        (claude-orgmode--backend-db-sync)
+        (expect 'vulpea-db-sync-full-scan :to-have-been-called))))
+
+  (describe "claude-orgmode--backend-get-backlinks"
+    (it "dispatches to vulpea-db-query-links-to"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-db-query-links-to :and-call-through)
+        (expect (claude-orgmode--backend-get-backlinks mock-note)
+                :to-equal nil)
+        (expect 'vulpea-db-query-links-to :to-have-been-called-with "vulpea-uuid-123"))))
+
+  (describe "claude-orgmode--backend-add-tag"
+    (it "dispatches to vulpea-tags-add"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-tags-add :and-call-through)
+        (claude-orgmode--backend-add-tag mock-note "new_tag")
+        (expect 'vulpea-tags-add :to-have-been-called-with mock-note "new_tag"))))
+
+  (describe "claude-orgmode--backend-remove-tag"
+    (it "dispatches to vulpea-tags-remove"
+      (let ((claude-orgmode--backend 'vulpea))
+        (spy-on 'vulpea-tags-remove :and-call-through)
+        (claude-orgmode--backend-remove-tag mock-note "old_tag")
+        (expect 'vulpea-tags-remove :to-have-been-called-with mock-note "old_tag"))))
+
+  (describe "claude-orgmode--backend-directory"
+    (it "returns vulpea directory from vulpea-db-sync-directories"
+      (let ((claude-orgmode--backend 'vulpea)
+            (vulpea-db-sync-directories '("/vulpea/notes")))
+        (expect (claude-orgmode--backend-directory)
+                :to-equal "/vulpea/notes")))
+
+    (it "falls back to org-directory when vulpea-db-sync-directories unbound"
+      (let ((claude-orgmode--backend 'vulpea)
+            (org-directory "/fallback/org"))
+        (when (boundp 'vulpea-db-sync-directories)
+          (makunbound 'vulpea-db-sync-directories))
+        (expect (claude-orgmode--backend-directory)
+                :to-equal "/fallback/org"))))
+
+  (describe "claude-orgmode--backend-info"
+    (it "returns vulpea backend info"
+      (let ((claude-orgmode--backend 'vulpea)
+            (vulpea-db-sync-directories '("/vulpea/notes")))
+        (spy-on 'vulpea-db-query :and-return-value (list mock-note))
+        (let ((info (claude-orgmode--backend-info)))
+          (expect (plist-get info :backend) :to-be 'vulpea)
+          (expect (plist-get info :directory) :to-equal "/vulpea/notes")
+          (expect (plist-get info :node-count) :to-be 1))))))
+
 (provide 'claude-orgmode-test)
 ;;; claude-orgmode-test.el ends here
