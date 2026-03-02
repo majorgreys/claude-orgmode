@@ -2,14 +2,14 @@
   "name": "claude-orgmode",
   "owner": { "name": "Tahir Butt" },
   "metadata": {
-    "description": "Org-mode note management via emacsclient (org-roam + vulpea)",
-    "version": "3.0.0"
+    "description": "Org-mode knowledge and note management via emacsclient (org-roam + vulpea)",
+    "version": "3.1.0"
   },
   "plugins": [{
     "name": "claude-orgmode",
-    "description": "Org-mode note management via emacsclient",
+    "description": "Org-mode knowledge and note management via emacsclient",
     "source": "./",
     "strict": false,
-    "skills": ["./skills/roam"]
+    "skills": ["./skills/orgmode", "./skills/org-roam", "./skills/vulpea"]
   }]
 }

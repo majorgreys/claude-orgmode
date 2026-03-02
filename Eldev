@@ -1,7 +1,7 @@
 ; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
 
 ;; Explicitly set main file
-(setf eldev-project-main-file "skills/roam/elisp/claude-orgmode.el")
+(setf eldev-project-main-file "elisp/claude-orgmode.el")
 
 ;; Use package archives
 (eldev-use-package-archive 'gnu)
@@ -12,7 +12,7 @@
 (eldev-add-extra-dependencies 'test 'org-download 'org-roam)
 
 ;; Add elisp directory to load path
-(add-to-list 'load-path (expand-file-name "skills/roam/elisp" eldev-project-dir))
+(add-to-list 'load-path (expand-file-name "elisp" eldev-project-dir))
 
 ;; Allow loading test helpers
 (eldev-add-loading-roots 'test "test")
