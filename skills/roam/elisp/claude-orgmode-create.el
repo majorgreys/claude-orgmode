@@ -1,4 +1,4 @@
-;;; org-roam-skill-create.el --- Note creation functions -*- lexical-binding: t; -*-
+;;; claude-orgmode-create.el --- Note creation functions -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025
 
@@ -6,21 +6,20 @@
 ;; Keywords: outlines convenience
 
 ;;; Commentary:
-;; Functions for creating org-roam notes programmatically.
+;; Functions for creating notes programmatically (org-roam or vulpea backend).
 
 ;;; Code:
 
 (require 'cl-lib)
-(require 'org-roam)
 (require 'org-id)
-(require 'org-roam-skill-core)
+(require 'claude-orgmode-core)
+(require 'claude-orgmode-backend)
 
 ;;;###autoload
-(cl-defun org-roam-skill-create-note (title &key tags content content-file keep-file)
-  "Create a new org-roam note with TITLE, optional TAGS and CONTENT.
-Automatically detect filename format and head content from capture
-templates. Work with any org-roam configuration - no customization
-required.
+(cl-defun claude-orgmode-create-note (title &key tags content content-file keep-file)
+  "Create a new note with TITLE, optional TAGS and CONTENT.
+With org-roam backend: auto-detects filename format and head content
+from capture templates.  With vulpea backend: uses vulpea-create.
 
 TAGS is a list of tag strings.
 CONTENT can be provided as a string (small content) or via
@@ -40,13 +39,26 @@ deletion, pass KEEP-FILE as t. This eliminates the need for manual
 cleanup in shell scripts.
 
 Return the file path of the created note."
-  (let* ((file-name (org-roam-skill--expand-filename title))
-         (file-path (expand-file-name file-name org-roam-directory))
+  (when (claude-orgmode--backend-vulpea-p)
+    ;; Vulpea backend: delegate entirely to vulpea-create
+    (let* ((actual-content (cond
+                             (content-file (claude-orgmode--read-content-file content-file))
+                             (content content)
+                             (t nil)))
+           (note (vulpea-create title nil :tags tags :body (or actual-content ""))))
+      ;; Cleanup temp file
+      (when (and content-file (not keep-file) (file-exists-p content-file)
+                 (claude-orgmode--looks-like-temp-file content-file))
+        (ignore-errors (delete-file content-file)))
+      (cl-return-from claude-orgmode-create-note (vulpea-note-path note))))
+  ;; Org-roam backend: manual file creation
+  (let* ((file-name (claude-orgmode--expand-filename title))
+         (file-path (expand-file-name file-name (claude-orgmode--backend-directory)))
          (node-id (org-id-uuid))
-         (head-content (org-roam-skill--get-head-content))
+         (head-content (claude-orgmode--get-head-content))
          ;; Read content from file if provided, otherwise use content parameter
          (actual-content (cond
-                          (content-file (org-roam-skill--read-content-file content-file))
+                          (content-file (claude-orgmode--read-content-file content-file))
                           (content content)
                           (t nil))))
 
@@ -65,7 +77,7 @@ Return the file path of the created note."
                       ;; First expand ${title}
                       (replace-regexp-in-string "\\${title}" title head-content))
                      ;; Then expand time format specifiers
-                     (expanded-head (org-roam-skill--expand-time-formats expanded-head)))
+                     (expanded-head (claude-orgmode--expand-time-formats expanded-head)))
                 (insert expanded-head)
                 (unless (string-suffix-p "\n" expanded-head)
                   (insert "\n"))))
@@ -77,7 +89,7 @@ Return the file path of the created note."
             ;; Insert filetags if provided (sanitize to remove hyphens)
             (when tags
               (let ((sanitized-tags
-                     (mapcar #'org-roam-skill--sanitize-tag tags)))
+                     (mapcar #'claude-orgmode--sanitize-tag tags)))
                 (insert (format "#+FILETAGS: :%s:\n"
                                 (mapconcat (lambda (tag) tag) sanitized-tags ":")))))
 
@@ -91,7 +103,7 @@ Return the file path of the created note."
                 (insert "\n"))))
 
           ;; Sync database to register the new note
-          (org-roam-db-sync)
+          (claude-orgmode--backend-db-sync)
 
           ;; Return the file path
           file-path)
@@ -100,7 +112,7 @@ Return the file path of the created note."
       (when (and content-file
                  (not keep-file)
                  (file-exists-p content-file)
-                 (org-roam-skill--looks-like-temp-file content-file))
+                 (claude-orgmode--looks-like-temp-file content-file))
         (condition-case err
             (delete-file content-file)
           (error
@@ -108,11 +120,11 @@ Return the file path of the created note."
                    content-file (error-message-string err))))))))
 
 ;;;###autoload
-(defun org-roam-skill-create-note-with-content (title content &optional tags)
+(defun claude-orgmode-create-note-with-content (title content &optional tags)
   "Create a new org-roam note with TITLE, CONTENT and optional TAGS.
-This is an alias for org-roam-skill-create-note with different arg order.
+This is an alias for claude-orgmode-create-note with different arg order.
 Return the file path of the created note."
-  (org-roam-skill-create-note title :content content :tags tags))
+  (claude-orgmode-create-note title :content content :tags tags))
 
-(provide 'org-roam-skill-create)
-;;; org-roam-skill-create.el ends here
+(provide 'claude-orgmode-create)
+;;; claude-orgmode-create.el ends here

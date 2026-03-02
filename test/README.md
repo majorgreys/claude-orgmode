@@ -1,6 +1,6 @@
-# org-roam-skill Tests
+# claude-orgmode Tests
 
-This directory contains Buttercup tests for org-roam-skill.
+This directory contains Buttercup tests for claude-orgmode.
 
 ## Test Structure
 
@@ -8,19 +8,19 @@ This directory contains Buttercup tests for org-roam-skill.
 test/
 ├── README.md                           # This file
 ├── test-helper.el                      # Test utilities and fixtures
-├── org-roam-skill-test.el             # Unit tests
-└── org-roam-skill-integration-test.el # Integration tests
+├── claude-orgmode-test.el             # Unit tests
+└── claude-orgmode-integration-test.el # Integration tests
 ```
 
 ## Test Types
 
-### Unit Tests (`org-roam-skill-test.el`)
+### Unit Tests (`claude-orgmode-test.el`)
 Tests individual functions in isolation using Buttercup's `describe`/`it` syntax:
 - Tag sanitization
 - Filename generation
 - Doctor/diagnostic functions
 
-### Integration Tests (`org-roam-skill-integration-test.el`)
+### Integration Tests (`claude-orgmode-integration-test.el`)
 Tests complete workflows with a temporary org-roam database:
 - Note creation with various options
 - Searching and querying notes
@@ -80,7 +80,7 @@ M-x buttercup-run
 
 Or run specific test files:
 ```bash
-eldev -C --unstable test test/org-roam-skill-test.el
+eldev -C --unstable test test/claude-orgmode-test.el
 ```
 
 ## Test Coverage
@@ -88,9 +88,9 @@ eldev -C --unstable test test/org-roam-skill-test.el
 ### Current Coverage
 
 **Unit Tests:**
-- ✅ Tag sanitization (`org-roam-skill--sanitize-tag`)
-- ✅ Filename generation (`org-roam-skill--expand-filename`)
-- ✅ Diagnostic checks (`org-roam-doctor-quick`, `check-org-roam-setup`)
+- ✅ Tag sanitization (`claude-orgmode--sanitize-tag`)
+- ✅ Filename generation (`claude-orgmode--expand-filename`)
+- ✅ Diagnostic checks (`claude-orgmode-doctor-quick`, `check-org-roam-setup`)
 
 **Integration Tests:**
 - ✅ Note creation (basic, with content, tag sanitization)
@@ -123,27 +123,27 @@ eldev -C --unstable test test/org-roam-skill-test.el
 ```elisp
 (ert-deftest my-integration-test ()
   "Test description."
-  (org-roam-skill-test-with-temp-db
+  (claude-orgmode-test-with-temp-db
    (let ((file-path (create-org-roam-note "Test" '("tag"))))
      (should (file-exists-p file-path))
-     (should (org-roam-skill-test--node-exists-p "Test")))))
+     (should (claude-orgmode-test--node-exists-p "Test")))))
 ```
 
 ### Helper Functions
 
 Available in `test-helper.el`:
 
-- `org-roam-skill-test-with-temp-db` - Macro for temporary database
-- `org-roam-skill-test--create-test-note` - Create test note
-- `org-roam-skill-test--count-nodes` - Count nodes in database
-- `org-roam-skill-test--get-note-content` - Get file content
-- `org-roam-skill-test--node-exists-p` - Check if node exists
+- `claude-orgmode-test-with-temp-db` - Macro for temporary database
+- `claude-orgmode-test--create-test-note` - Create test note
+- `claude-orgmode-test--count-nodes` - Count nodes in database
+- `claude-orgmode-test--get-note-content` - Get file content
+- `claude-orgmode-test--node-exists-p` - Check if node exists
 
 ## Test Guidelines
 
-1. **Use descriptive test names**: Prefix with `org-roam-skill-test-` or `org-roam-skill-integration-test-`
+1. **Use descriptive test names**: Prefix with `claude-orgmode-test-` or `claude-orgmode-integration-test-`
 2. **Test one thing per test**: Keep tests focused and atomic
-3. **Use temp database for integration tests**: Always use `org-roam-skill-test-with-temp-db` macro
+3. **Use temp database for integration tests**: Always use `claude-orgmode-test-with-temp-db` macro
 4. **Clean up after tests**: The test helper handles cleanup automatically
 5. **Document expected behavior**: Add clear docstrings to tests
 6. **Test edge cases**: Include tests for error conditions and boundary cases
@@ -196,7 +196,7 @@ The test suite creates temporary directories under your system temp directory. E
 
 ## Contributing Tests
 
-When adding new features to org-roam-skill:
+When adding new features to claude-orgmode:
 
 1. Add unit tests for new utility functions
 2. Add integration tests for workflows

@@ -2,50 +2,57 @@
 
 ## What This Is
 
-A Claude Code skill enabling interaction with org-roam note-taking systems through emacsclient. Communicates with a running Emacs daemon to create, query, and manage org-roam notes.
+A Claude Code plugin (claude-orgmode) enabling interaction with org-roam and vulpea note-taking systems through emacsclient. Communicates with a running Emacs daemon to create, query, and manage notes.
 
 ## Architecture
 
 **Core components:**
-- `SKILL.md` - Main skill instructions (307 lines, follows skill-creator best practices)
-- `elisp/org-roam-skill.el` - Main package loading all modules
-- `elisp/org-roam-skill-*.el` - Modular implementations (create, search, links, tags, attach, utils, doctor)
-- `scripts/org-roam-eval` - Auto-load wrapper script
-- `references/` - Detailed documentation loaded as needed by Claude
+- `skills/roam/SKILL.md` - Main skill instructions
+- `skills/roam/elisp/claude-orgmode.el` - Main package loading all modules
+- `skills/roam/elisp/claude-orgmode-*.el` - Modular implementations (core, create, search, links, tags, attach, utils, doctor)
+- `skills/roam/scripts/claude-orgmode-eval` - Auto-load wrapper script
+- `skills/roam/references/` - Detailed documentation loaded as needed by Claude
+- `.claude-plugin/marketplace.json` - Plugin metadata
 
 **References (progressive disclosure):**
-- `references/functions.md` - Complete function documentation with parameters and examples
-- `references/installation.md` - Setup and configuration guide
-- `references/troubleshooting.md` - Common issues and solutions
-- `references/org-roam-api.md` - Org-roam API reference
-- `references/emacsclient-usage.md` - Detailed emacsclient patterns
+- `skills/roam/references/functions.md` - Complete function documentation with parameters and examples
+- `skills/roam/references/installation.md` - Setup and configuration guide
+- `skills/roam/references/troubleshooting.md` - Common issues and solutions
+- `skills/roam/references/org-roam-api.md` - Org-roam API reference
+- `skills/roam/references/emacsclient-usage.md` - Detailed emacsclient patterns
 
 **Package loading:**
-Package auto-loads on first use via `scripts/org-roam-eval` wrapper - no manual Emacs config needed. All functions use `org-roam-skill-` prefix except diagnostics (`org-roam-doctor*`).
+Package auto-loads on first use via `skills/roam/scripts/claude-orgmode-eval` wrapper - no manual Emacs config needed. All functions use `claude-orgmode-` prefix including diagnostics (`claude-orgmode-doctor*`).
 
 ## Auto-Load Architecture
 
-**Wrapper script:** `scripts/org-roam-eval`
-- Checks if `org-roam-skill` is loaded in daemon
+**Wrapper script:** `skills/roam/scripts/claude-orgmode-eval`
+- Checks if `claude-orgmode` is loaded in daemon
 - Auto-loads from skill directory on first call
 - Subsequent calls use already-loaded package (no overhead)
 - Single source of truth: skill ships its own elisp code
+- Supports `EMACS_SOCKET_NAME` env var for multi-daemon setups
 
 **Benefits:**
 - No user configuration needed (simpler installation)
 - Skill updates are self-contained (no coordination with Emacs config)
 - Always uses the version that ships with the skill
+- Works with multiple Emacs configurations (e.g., custom Emacs + Doom)
 
 **Usage pattern:**
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-create-note \"Title\")"
+# Default (connects to "server" socket)
+${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
+
+# Target a specific daemon
+EMACS_SOCKET_NAME=thbemacs ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
 ```
 
 ## Key Implementation Details
 
 ### Note Creation
 
-**`org-roam-skill-create-note`** creates files directly with proper org-roam structure (PROPERTIES block, ID, title, filetags). This is the recommended approach for programmatic note creation, as `org-roam-capture-` is designed for interactive use.
+**`claude-orgmode-create-note`** creates files directly with proper org-roam structure (PROPERTIES block, ID, title, filetags). This is the recommended approach for programmatic note creation, as `org-roam-capture-` is designed for interactive use.
 
 **Auto-detection behavior:**
 1. Reads filename format from user's `org-roam-capture-templates`
@@ -61,7 +68,7 @@ ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-create-
 - Timestamp-only templates (`%<%Y%m%d%H%M%S>.org`)
 - Custom templates with any valid placeholders
 
-**Implementation reference:** `elisp/org-roam-skill-create.el:25`
+**Implementation reference:** `skills/roam/elisp/claude-orgmode-create.el:25`
 
 ### Node Access Patterns
 
@@ -69,7 +76,7 @@ ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval "(org-roam-skill-create-
 ```elisp
 (org-roam-node-from-title-or-alias "Note Title")
 ```
-Reference: `elisp/org-roam-skill-search.el:15`
+Reference: `skills/roam/elisp/claude-orgmode-search.el:15`
 
 **Access by ID:**
 ```elisp
@@ -91,30 +98,30 @@ Org tags cannot contain hyphens. All tag functions automatically sanitize:
 - `my-tag` → `my_tag`
 - `foo-bar-baz` → `foo_bar_baz`
 
-**Implementation:** `elisp/org-roam-skill-tags.el`
+**Implementation:** `skills/roam/elisp/claude-orgmode-tags.el`
 
 ### Attachments
 
-Use `org-attach` functions via the `org-roam-skill--with-node-context` helper:
+Use `org-attach` functions via the `claude-orgmode--with-node-context` helper:
 
 ```elisp
-(org-roam-skill--with-node-context node-id
+(claude-orgmode--with-node-context node-id
   (org-attach-attach source-path nil 'cp))
 ```
 
 **Behavior:**
 - Files copied to `{org-attach-id-dir}/{node-id}/filename`
 - org-attach automatically manages ATTACH property
-- See `elisp/org-roam-skill-attach.el` for implementation
+- See `skills/roam/elisp/claude-orgmode-attach.el` for implementation
 
 ### Formatting
 
-All file-modifying operations auto-format using `org-roam-skill--format-buffer`:
+All file-modifying operations auto-format using `claude-orgmode--format-buffer`:
 - Indents org content
 - Aligns tables via `org-table-align`
 - Ensures consistent formatting
 
-Reference: `elisp/org-roam-skill-utils.el`
+Reference: `skills/roam/elisp/claude-orgmode-core.el`
 
 ### Database Operations
 
@@ -127,12 +134,12 @@ Sync before queries if data might be stale:
 **Query preferences:**
 - Prefer org-roam query functions over direct SQL
 - Use `org-roam-db-query` only when necessary
-- Check existing functions in `elisp/org-roam-skill-search.el` first
+- Check existing functions in `skills/roam/elisp/claude-orgmode-search.el` first
 
 ### Diagnostics
 
-- Full check: `emacsclient --eval "(org-roam-doctor)"`
-- Quick check: `emacsclient --eval "(org-roam-doctor-quick)"`
+- Full check: `emacsclient --eval "(claude-orgmode-doctor)"`
+- Quick check: `emacsclient --eval "(claude-orgmode-doctor-quick)"`
 
 ### Temp File Handling
 
@@ -140,8 +147,8 @@ Sync before queries if data might be stale:
 - Only deletes files in temp directories (`/tmp/`, `/var/tmp/`, and `temporary-file-directory`)
 - Use `:keep-file t` to prevent deletion (useful for debugging)
 - Internal temp files (in elisp) use `make-temp-file` + `unwind-protect` for guaranteed cleanup
-- Implementation: `elisp/org-roam-skill-create.el:55-110` (unwind-protect cleanup logic)
-- Validation function: `org-roam-skill--looks-like-temp-file` in `elisp/org-roam-skill-core.el:35-42`
+- Implementation: `skills/roam/elisp/claude-orgmode-create.el:55-110` (unwind-protect cleanup logic)
+- Validation function: `claude-orgmode--looks-like-temp-file` in `skills/roam/elisp/claude-orgmode-core.el:35-42`
 
 ### Error Handling
 
@@ -169,8 +176,8 @@ eldev -C --unstable clean    # Remove compiled files and cache
 ### Test Structure
 
 **Test files:**
-- `test/org-roam-skill-test.el` - Unit tests
-- `test/org-roam-skill-integration-test.el` - Integration tests
+- `test/claude-orgmode-test.el` - Unit tests
+- `test/claude-orgmode-integration-test.el` - Integration tests
 - `test/test-helper.el` - Test helpers and utilities
 
 ### Writing Tests
@@ -209,7 +216,7 @@ Always use temporary files and clean up:
 ### When to Write Tests
 
 **Required for:**
-- New public API functions (all `org-roam-skill-*` functions)
+- New public API functions (all `claude-orgmode-*` functions)
 - Bug fixes (add regression test)
 - Edge cases and error handling
 - Helper functions in modules
@@ -223,11 +230,11 @@ Always use temporary files and clean up:
 ### Pre-Commit Checklist
 
 Before committing changes:
-1. ✓ Run `eldev -C --unstable test` - all tests must pass
-2. ✓ Run `eldev -C --unstable lint` - no linting errors
-3. ✓ Add tests for new functionality
-4. ✓ Update tests if changing existing behavior
-5. ✓ Ensure tests are descriptive and clear
+1. Run `eldev -C --unstable test` - all tests must pass
+2. Run `eldev -C --unstable lint` - no linting errors
+3. Add tests for new functionality
+4. Update tests if changing existing behavior
+5. Ensure tests are descriptive and clear
 
 ## Git Workflow
 
@@ -243,37 +250,3 @@ Before committing changes:
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
-
-## Skill Packaging
-
-**Files included in .skill package:**
-- `SKILL.md` (required)
-- `elisp/*.el` files (Emacs Lisp code)
-- `scripts/org-roam-eval` (auto-load wrapper)
-- `references/` (documentation for AI)
-
-**Files excluded from .skill package** (see `.skillignore`):
-- `README.md` - Developer/user documentation (not needed for AI agent)
-- `CLAUDE.md` - Project-specific development instructions (this file)
-- `test/` - Test suite (developer resources)
-- `.git/`, `.github/`, `Eldev` - Development tools
-
-**Packaging command:**
-```bash
-# From the skill directory:
-zip -r ../org-roam-skill.skill . -x @.skillignore
-```
-
-## Additional Documentation
-
-**For AI (included in package):**
-- `SKILL.md` - Quick reference and core workflows
-- `references/functions.md` - Complete function documentation
-- `references/installation.md` - Setup guide
-- `references/troubleshooting.md` - Common issues
-- `references/org-roam-api.md` - Org-roam API reference
-- `references/emacsclient-usage.md` - Emacsclient patterns
-
-**For developers (excluded from package):**
-- `README.md` - User-facing documentation
-- `CLAUDE.md` - This file - comprehensive development guide with implementation patterns and testing details

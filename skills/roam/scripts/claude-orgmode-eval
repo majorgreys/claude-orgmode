@@ -1,0 +1,42 @@
+#!/bin/bash
+# Auto-loading wrapper for claude-orgmode emacsclient calls
+#
+# Usage: claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
+#
+# Environment variables:
+#   EMACS_SOCKET_NAME - Socket name for emacsclient (e.g., "thbemacs", "server")
+#                       If not set, uses emacsclient's default behavior.
+#
+# This script ensures claude-orgmode is loaded before executing the elisp expression.
+# On first call, it loads the package into the running Emacs daemon.
+# Subsequent calls use the already-loaded package (fast).
+
+set -euo pipefail
+
+# Get the directory where this script lives (skill directory)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Build emacsclient command with optional socket
+EMACSCLIENT=(emacsclient)
+if [[ -n "${EMACS_SOCKET_NAME:-}" ]]; then
+    EMACSCLIENT+=(--socket-name "$EMACS_SOCKET_NAME")
+fi
+
+# Check if claude-orgmode is loaded, load if not
+"${EMACSCLIENT[@]}" --eval "(featurep 'claude-orgmode)" 2>/dev/null | grep -q "nil" && {
+    # Not loaded, load it now
+    "${EMACSCLIENT[@]}" --eval "(progn
+        (add-to-list 'load-path \"$SKILL_DIR/elisp\")
+        (require 'claude-orgmode))" >/dev/null || {
+        echo "Error: Failed to load claude-orgmode package" >&2
+        echo "Ensure Emacs daemon is running with org-roam or vulpea installed" >&2
+        if [[ -n "${EMACS_SOCKET_NAME:-}" ]]; then
+            echo "Socket: $EMACS_SOCKET_NAME" >&2
+        fi
+        exit 1
+    }
+}
+
+# Execute the provided elisp expression
+"${EMACSCLIENT[@]}" --eval "$1"
