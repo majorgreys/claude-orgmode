@@ -9,7 +9,8 @@
 
 ;; Additional dependencies not auto-detected
 ;; org-roam is optional at runtime (vulpea is an alternative) but required for tests
-(eldev-add-extra-dependencies 'test 'org-download 'org-roam)
+;; org-download is optional at runtime (only needed for attach-file-to-references)
+(eldev-add-extra-dependencies 'test 'org-roam 'org-download)
 
 ;; Add elisp directory to load path
 (add-to-list 'load-path (expand-file-name "elisp" eldev-project-dir))

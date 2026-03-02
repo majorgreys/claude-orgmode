@@ -4,7 +4,7 @@
 
 ;; Author: Tahir Butt
 ;; Version: 3.1.0
-;; Package-Requires: ((emacs "27.2") (org-download "0.1.0"))
+;; Package-Requires: ((emacs "27.2"))
 ;; Keywords: outlines convenience
 ;; URL: https://github.com/majorgreys/claude-orgmode
 

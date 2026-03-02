@@ -7,12 +7,12 @@
 
 ;;; Commentary:
 ;; Functions for attaching files to notes using org-attach.
-;; Also supports attaching files with links in a References section via org-download.
+;; Also supports attaching files with links in a References section
+;; (requires org-download when using `claude-orgmode-attach-file-to-references').
 
 ;;; Code:
 
 (require 'org-attach)
-(require 'org-download)
 (require 'claude-orgmode-core)
 (require 'claude-orgmode-backend)
 
@@ -113,6 +113,8 @@ Supports:
 - Local file paths: /path/to/file.pdf
 - URLs: https://example.com/file.pdf
 - Base64 data URIs for images"
+  (unless (require 'org-download nil 'noerror)
+    (error "Package org-download is required for attach-file-to-references"))
   (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
