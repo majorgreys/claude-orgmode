@@ -144,9 +144,9 @@ Returns a list of backend-specific node/note objects."
          (save-excursion
            (goto-char (point-min))
            (if (re-search-forward "^#\\+\\(?:filetags\\|FILETAGS\\):" nil t)
-               (progn
-                 (end-of-line)
-                 (unless (looking-back (concat ":" tag ":") nil)
+               (let ((line (buffer-substring (line-beginning-position) (line-end-position))))
+                 (unless (string-match-p (concat ":" tag ":") line)
+                   (end-of-line)
                    (insert ":" tag ":")))
              (when (re-search-forward "^#\\+\\(?:title\\|TITLE\\):" nil t)
                (forward-line 1)
@@ -168,6 +168,10 @@ Returns a list of backend-specific node/note objects."
              (let ((line-end (line-end-position)))
                (while (re-search-forward (concat ":" tag ":") line-end t)
                  (replace-match ":" nil nil)))
+             ;; Clean up any double colons left from removal
+             (beginning-of-line)
+             (while (re-search-forward "::" (line-end-position) t)
+               (replace-match ":" nil nil))
              (save-buffer)
              (org-roam-db-sync))))))
     ('vulpea

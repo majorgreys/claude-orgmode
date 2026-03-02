@@ -6,7 +6,7 @@
 ;; Keywords: outlines convenience
 
 ;;; Commentary:
-;; Functions for attaching files to org-roam notes using org-attach.
+;; Functions for attaching files to notes using org-attach.
 ;; Also supports attaching files with links in a References section via org-download.
 
 ;;; Code:
@@ -18,7 +18,7 @@
 
 ;;;###autoload
 (defun claude-orgmode-attach-file (title-or-id file-path)
-  "Attach FILE-PATH to the org-roam note identified by TITLE-OR-ID.
+  "Attach FILE-PATH to the note identified by TITLE-OR-ID.
 Copy the file using org-attach.  Return the attachment directory path."
   (unless (file-exists-p file-path)
     (error "File does not exist: %s" file-path))
@@ -37,11 +37,11 @@ Copy the file using org-attach.  Return the attachment directory path."
        (list :directory attach-dir
              :filename filename
              :full-path (expand-file-name filename attach-dir)
-             :node-title (org-roam-node-title node))))))
+             :node-title (claude-orgmode--backend-node-title node))))))
 
 ;;;###autoload
 (defun claude-orgmode-list-attachments (title-or-id)
-  "List all attachments for the org-roam note identified by TITLE-OR-ID.
+  "List all attachments for the note identified by TITLE-OR-ID.
 Return a list of attachment info plists with :filename, :size, and :path."
   (claude-orgmode--with-node-context
    title-or-id
@@ -150,7 +150,7 @@ Supports:
              (list :path new-path
                    :relative-path rel-path
                    :filename file-name
-                   :node-title (org-roam-node-title node)))
+                   :node-title (claude-orgmode--backend-node-title node)))
 
          (error
           (goto-char original-point)

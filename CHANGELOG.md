@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-03-02
+
+### BREAKING CHANGES
+
+**Renamed from org-roam-skill to claude-orgmode**
+
+All function prefixes changed: `org-roam-skill-*` → `claude-orgmode-*`
+Script renamed: `org-roam-eval` → `claude-orgmode-eval`
+Diagnostics renamed: `org-roam-doctor` → `claude-orgmode-doctor`
+
+### Added
+
+- Backend abstraction layer (auto-detect org-roam vs vulpea)
+- Vulpea backend support via `claude-orgmode-backend.el`
+- Split into three skills: orgmode (knowledge), org-roam (operations), vulpea (operations)
+- Plugin metadata (`.claude-plugin/marketplace.json`)
+- Plugin integration tests for both backends
+- Vulpea dispatch tests
+- Multi-daemon support via `EMACS_SOCKET_NAME`
+- File attachment support via org-attach and References section
+
+### Changed
+
+- Moved shared elisp to project root `elisp/`
+- Moved shared scripts to project root `scripts/`
+- Moved shared references to project root `references/`
+- Each skill has its own SKILL.md with appropriate triggers and allowed-tools
+
 ## [2.0.0] - 2025-12-15
 
 ### BREAKING CHANGES

@@ -13,6 +13,11 @@
 
 set -euo pipefail
 
+if [[ $# -ne 1 ]]; then
+    echo "Usage: claude-orgmode-eval \"(elisp-expression)\"" >&2
+    exit 1
+fi
+
 # Get the project root directory (parent of scripts/)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"

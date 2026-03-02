@@ -131,59 +131,6 @@ Returns the result of FUNCTION."
               (funcall function node))
           (error "Could not locate node in file: %s" title-or-id))))))
 
-(defun claude-orgmode--get-filename-format ()
-  "Extract filename format from user's org-roam capture templates.
-Return the filename pattern from the default template, or a fallback."
-  (let* ((default-template (assoc "d" org-roam-capture-templates))
-         ;; Skip key, description, type, template-content to get to plist
-         (plist (cdr (cdr (cdr (cdr default-template)))))
-         (target (plist-get plist :target)))
-    (if (and target (eq (car target) 'file+head))
-        ;; Extract first argument of file+head
-        (nth 1 target)
-      ;; Fallback to timestamp-only if no template found
-      "%<%Y%m%d%H%M%S>.org")))
-
-(defun claude-orgmode--expand-filename (title)
-  "Generate a filename for TITLE using the user's configured format.
-Expand placeholders like %<...>, ${slug}, ${title}, etc."
-  (let* ((format-string (claude-orgmode--get-filename-format))
-         ;; Create slug manually: lowercase, replace spaces with underscores
-         (slug (replace-regexp-in-string " " "_" (downcase title)))
-         (timestamp (format-time-string "%Y%m%d%H%M%S"))
-         (filename format-string))
-
-    ;; Replace common placeholders
-    ;; Handle %<...> time format
-    (when (string-match "%<\\([^>]+\\)>" filename)
-      (let ((time-format (match-string 1 filename)))
-        (setq filename (replace-regexp-in-string
-                       "%<[^>]+>"
-                       (format-time-string time-format)
-                       filename))))
-
-    ;; Replace ${slug}
-    (setq filename (replace-regexp-in-string "\\${slug}" slug filename))
-
-    ;; Replace ${title}
-    (setq filename (replace-regexp-in-string "\\${title}" title filename))
-
-    ;; Ensure .org extension
-    (unless (string-suffix-p ".org" filename)
-      (setq filename (concat filename ".org")))
-
-    filename))
-
-(defun claude-orgmode--get-head-content ()
-  "Extract head content from user's org-roam capture template.
-Return the head template string, or nil if not found."
-  (let* ((default-template (assoc "d" org-roam-capture-templates))
-         (plist (cdr (cdr (cdr (cdr default-template)))))
-         (target (plist-get plist :target)))
-    (when (and target (eq (car target) 'file+head))
-      ;; Second argument of file+head is the head content
-      (nth 2 target))))
-
 (defun claude-orgmode--expand-time-formats (template-string)
   "Expand time format specifiers in TEMPLATE-STRING.
 Handles:
