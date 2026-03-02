@@ -50,7 +50,7 @@ The plugin works with **Claude Code only** (not Claude Desktop, which uses a dif
 Set `EMACS_SOCKET_NAME` to target a specific Emacs daemon:
 
 ```bash
-EMACS_SOCKET_NAME=thbemacs claude-orgmode-eval "(claude-orgmode-doctor)"
+EMACS_SOCKET_NAME=myemacs claude-orgmode-eval "(claude-orgmode-doctor)"
 ```
 
 ## Installation

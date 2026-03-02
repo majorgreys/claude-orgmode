@@ -47,8 +47,8 @@ For org-roam users, see the **org-roam** skill. For org-mode syntax reference, s
 Set `EMACS_SOCKET_NAME` to target a specific Emacs daemon:
 
 ```bash
-# Target a named daemon (e.g., thbemacs, doom)
-EMACS_SOCKET_NAME=thbemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+# Target a named daemon
+EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
 
 # Default behavior (connects to "server" socket) when EMACS_SOCKET_NAME is not set
 ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"

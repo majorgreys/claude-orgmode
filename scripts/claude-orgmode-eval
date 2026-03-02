@@ -4,7 +4,7 @@
 # Usage: claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
 #
 # Environment variables:
-#   EMACS_SOCKET_NAME - Socket name for emacsclient (e.g., "thbemacs", "server")
+#   EMACS_SOCKET_NAME - Socket name for emacsclient (e.g., "myemacs", "server")
 #                       If not set, uses emacsclient's default behavior.
 #
 # This script ensures claude-orgmode is loaded before executing the elisp expression.

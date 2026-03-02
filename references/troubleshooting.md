@@ -24,7 +24,7 @@ Should return `t` without errors.
 
 ### Multiple Daemon Instances
 
-Multiple named daemons (e.g., `thbemacs` and `server`) are a supported configuration. Each runs independently with its own socket.
+Multiple named daemons (e.g., `myemacs` and `server`) are a supported configuration. Each runs independently with its own socket.
 
 **Symptoms of accidentally connecting to the wrong daemon:**
 - Functions not found (skill loaded in other daemon)
@@ -48,12 +48,12 @@ ls /run/user/$(id -u)/emacs/ 2>/dev/null || ls /tmp/emacs$(id -u)/ 2>/dev/null
 **Solution:**
 Set `EMACS_SOCKET_NAME` to target the correct daemon:
 ```bash
-EMACS_SOCKET_NAME=thbemacs ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
 ```
 
 **Verify which daemon you're connected to:**
 ```bash
-emacsclient --socket-name thbemacs --eval "org-roam-directory"
+emacsclient --socket-name myemacs --eval "org-roam-directory"
 emacsclient --socket-name server --eval "org-roam-directory"
 ```
 
@@ -69,7 +69,7 @@ emacsclient --socket-name server --eval "org-roam-directory"
 
 1. Verify load-path is correct:
    ```bash
-   ls ${CLAUDE_PLUGIN_ROOT}/skills/roam/elisp/claude-orgmode.el
+   ls ${CLAUDE_PLUGIN_ROOT}/elisp/claude-orgmode.el
    ```
 
 2. Check Emacs configuration has correct path:
@@ -251,7 +251,7 @@ Use the `orgmode` skill for general org-mode formatting before creating roam not
 ```bash
 # Step 1: Convert markdown to org (orgmode skill)
 # Step 2: Create roam note with org content (this skill)
-${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval \
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval \
   "(claude-orgmode-create-note \"Title\" :content \"* Org content\")"
 ```
 

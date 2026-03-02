@@ -48,7 +48,7 @@ The elisp code and eval script are shared; the backend abstraction layer auto-de
 ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
 
 # Target a specific daemon
-EMACS_SOCKET_NAME=thbemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
+EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
 ```
 
 ## Key Implementation Details

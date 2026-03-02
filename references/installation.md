@@ -37,7 +37,7 @@ emacs --daemon
 
 For named daemons, specify the socket:
 ```bash
-emacsclient --socket-name thbemacs --eval "t"
+emacsclient --socket-name myemacs --eval "t"
 ```
 
 ### Check org-roam is installed
@@ -51,7 +51,7 @@ Should return `t`. If not, install org-roam in Emacs.
 ### Find your org-roam directory
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "org-roam-directory"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "org-roam-directory"
 ```
 
 Returns your configured org-roam directory path.
@@ -59,7 +59,7 @@ Returns your configured org-roam directory path.
 ### Run diagnostic
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
 ```
 
 This checks your org-roam configuration, database, and templates.
@@ -113,18 +113,18 @@ If you run multiple Emacs configurations (e.g., custom Emacs and Doom Emacs), ea
 
 ```bash
 # Start named daemons
-emacs --init-directory ~/.config/thbemacs --fg-daemon=thbemacs
+emacs --init-directory ~/.config/myemacs --fg-daemon=myemacs
 emacs --init-directory ~/.config/doom --fg-daemon=doom
 ```
 
 Set `EMACS_SOCKET_NAME` to target a specific daemon with `claude-orgmode-eval`:
 
 ```bash
-# Target thbemacs
-EMACS_SOCKET_NAME=thbemacs ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+# Target myemacs
+EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
 
 # Target doom
-EMACS_SOCKET_NAME=doom ${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+EMACS_SOCKET_NAME=doom ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
 ```
 
 To discover available sockets:
@@ -171,7 +171,7 @@ Ensure org-roam loads on startup:
 Manually sync:
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/claude-orgmode-eval "(org-roam-db-sync)"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(org-roam-db-sync)"
 ```
 
 ## Upgrading the Skill
