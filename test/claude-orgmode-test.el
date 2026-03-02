@@ -410,10 +410,17 @@
 ;;; Backend Detection Tests
 
 (describe "claude-orgmode--detect-backend"
-  (it "detects org-roam when loaded"
-    ;; org-roam is loaded in our test environment
+  (it "detects org-roam when only org-roam is loaded"
+    ;; org-roam is loaded in our test environment (vulpea is not)
     (let ((claude-orgmode--backend nil))
       (expect (claude-orgmode--detect-backend) :to-be 'org-roam)))
+
+  (it "prefers vulpea when both are loaded"
+    ;; vulpea depends on org-roam, so both are always present in vulpea setups
+    (let ((claude-orgmode--backend nil))
+      (spy-on 'featurep :and-call-fake
+              (lambda (feature &rest _) (memq feature '(vulpea org-roam))))
+      (expect (claude-orgmode--detect-backend) :to-be 'vulpea)))
 
   (it "caches the detected backend"
     (let ((claude-orgmode--backend nil))

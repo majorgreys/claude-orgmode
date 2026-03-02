@@ -45,6 +45,10 @@ The plugin works with **Claude Code only** (not Claude Desktop, which uses a dif
 
 **The plugin auto-loads on first use** — no Emacs configuration needed!
 
+### Backend Detection
+
+The plugin auto-detects whether to use org-roam or vulpea. When both are loaded (the common case for vulpea users, since vulpea depends on org-roam), **vulpea is preferred**. This ensures notes are created through vulpea's capture system and indexed in its database.
+
 ### Multi-daemon Support
 
 Set `EMACS_SOCKET_NAME` to target a specific Emacs daemon:
@@ -121,6 +125,10 @@ eldev -C --unstable lint     # Run linting checks
 ```
 
 ## Version History
+
+### v3.0.2
+
+- Prefer vulpea backend when both org-roam and vulpea are loaded (vulpea depends on org-roam, so both are always present in vulpea setups)
 
 ### v3.0.0 (Breaking Changes)
 
