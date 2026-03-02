@@ -24,11 +24,13 @@ Result is cached in `claude-orgmode--backend'."
   (or claude-orgmode--backend
       (setq claude-orgmode--backend
             (cond
-             ((featurep 'org-roam) 'org-roam)
+             ;; Prefer vulpea when loaded — vulpea depends on org-roam
+             ;; so both are always present in vulpea setups
              ((featurep 'vulpea) 'vulpea)
+             ((featurep 'org-roam) 'org-roam)
              ;; Try to load one
-             ((require 'org-roam nil 'noerror) 'org-roam)
              ((require 'vulpea nil 'noerror) 'vulpea)
+             ((require 'org-roam nil 'noerror) 'org-roam)
              (t (error "Neither org-roam nor vulpea is available"))))))
 
 (defun claude-orgmode--backend-org-roam-p ()
