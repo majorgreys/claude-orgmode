@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues and solutions for org-roam-skill.
+Common issues and solutions for claude-orgmode.
 
 ## Connection Issues
 
@@ -24,51 +24,67 @@ Should return `t` without errors.
 
 ### Multiple Daemon Instances
 
-**Symptoms:**
-- Unpredictable behavior
-- Functions not found
-- Wrong configuration loaded
+Multiple named daemons (e.g., `myemacs` and `server`) are a supported configuration. Each runs independently with its own socket.
+
+**Symptoms of accidentally connecting to the wrong daemon:**
+- Functions not found (skill loaded in other daemon)
+- Wrong org-roam directory or database
+- Unexpected notes or missing results
 
 **Check running daemons:**
 ```bash
-ps aux | grep "emacs --daemon"
+pgrep -af emacs
+```
+
+**Check available sockets:**
+```bash
+# macOS
+ls /var/folders/*/*/T/emacs$(id -u)/ 2>/dev/null
+
+# Linux
+ls /run/user/$(id -u)/emacs/ 2>/dev/null || ls /tmp/emacs$(id -u)/ 2>/dev/null
 ```
 
 **Solution:**
-Kill all daemons and restart:
+Set `EMACS_SOCKET_NAME` to target the correct daemon:
 ```bash
-pkill -f "emacs --daemon"
-emacs --daemon
+EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+```
+
+**Verify which daemon you're connected to:**
+```bash
+emacsclient --socket-name myemacs --eval "org-roam-directory"
+emacsclient --socket-name server --eval "org-roam-directory"
 ```
 
 ## Package Loading Issues
 
-### org-roam-skill Not Loaded
+### claude-orgmode Not Loaded
 
 **Symptoms:**
-- `emacsclient --eval "(featurep 'org-roam-skill)"` returns `nil`
+- `emacsclient --eval "(featurep 'claude-orgmode)"` returns `nil`
 - Function not found errors
 
 **Solution:**
 
 1. Verify load-path is correct:
    ```bash
-   ls ${CLAUDE_PLUGIN_ROOT}/skills/roam/elisp/org-roam-skill.el
+   ls ${CLAUDE_PLUGIN_ROOT}/elisp/claude-orgmode.el
    ```
 
 2. Check Emacs configuration has correct path:
    ```elisp
    ;; For Doom (replace <PLUGIN_PATH> with actual plugin location)
-   (use-package! org-roam-skill
+   (use-package! claude-orgmode
      :load-path "<PLUGIN_PATH>/elisp")
 
    ;; For vanilla (replace <PLUGIN_PATH> with actual plugin location)
    (add-to-list 'load-path "<PLUGIN_PATH>/elisp")
-   (require 'org-roam-skill)
+   (require 'claude-orgmode)
    ```
 
    Note: `<PLUGIN_PATH>` is the skill's installation directory. The auto-load
-   wrapper (`scripts/org-roam-eval`) handles this automatically—manual Emacs
+   wrapper (`scripts/claude-orgmode-eval`) handles this automatically—manual Emacs
    configuration is only needed if auto-loading fails.
 
 3. Restart Emacs daemon:
@@ -79,7 +95,7 @@ emacs --daemon
 
 4. Verify loaded:
    ```bash
-   emacsclient --eval "(featurep 'org-roam-skill)"
+   emacsclient --eval "(featurep 'claude-orgmode)"
    ```
 
 ### org-roam Not Loaded
@@ -172,12 +188,12 @@ Tags passed as string instead of list.
 
 **Wrong:**
 ```bash
-emacsclient --eval "(org-roam-skill-create-note \"Title\" :tags \"tag\")"
+emacsclient --eval "(claude-orgmode-create-note \"Title\" :tags \"tag\")"
 ```
 
 **Correct:**
 ```bash
-emacsclient --eval "(org-roam-skill-create-note \"Title\" :tags '(\"tag\"))"
+emacsclient --eval "(claude-orgmode-create-note \"Title\" :tags '(\"tag\"))"
 ```
 
 ### Content Escaping Issues
@@ -196,7 +212,7 @@ TEMP=$(mktemp -t org-roam-content.XXXXXX)
 cat > "$TEMP" << 'EOF'
 Your content with special characters, quotes, etc.
 EOF
-emacsclient --eval "(org-roam-skill-create-note \"Title\" :content-file \"$TEMP\")"
+emacsclient --eval "(claude-orgmode-create-note \"Title\" :content-file \"$TEMP\")"
 ```
 
 ### Title Duplication
@@ -235,8 +251,8 @@ Use the `orgmode` skill for general org-mode formatting before creating roam not
 ```bash
 # Step 1: Convert markdown to org (orgmode skill)
 # Step 2: Create roam note with org content (this skill)
-${CLAUDE_PLUGIN_ROOT}/skills/roam/scripts/org-roam-eval \
-  "(org-roam-skill-create-note \"Title\" :content \"* Org content\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval \
+  "(claude-orgmode-create-note \"Title\" :content \"* Org content\")"
 ```
 
 This skill focuses on org-roam-specific operations (note creation, database sync, node linking). For general org-mode formatting, use the `orgmode` skill.
@@ -258,7 +274,7 @@ This skill focuses on org-roam-specific operations (note creation, database sync
 
 2. Check search term case (searches are case-insensitive):
    ```bash
-   emacsclient --eval "(org-roam-skill-search-by-title \"react\")"
+   emacsclient --eval "(claude-orgmode-search-by-title \"react\")"
    ```
 
 3. Verify note exists:
@@ -273,7 +289,7 @@ This skill focuses on org-roam-specific operations (note creation, database sync
 - Substring searches fail
 
 **Note:**
-`org-roam-skill-search-by-title` does partial matching by default. If not working, check database is synced.
+`claude-orgmode-search-by-title` does partial matching by default. If not working, check database is synced.
 
 ## Link Issues
 
@@ -297,7 +313,7 @@ This skill focuses on org-roam-specific operations (note creation, database sync
 
 3. Verify link was actually inserted:
    ```bash
-   emacsclient --eval "(org-roam-skill-get-backlinks-by-title \"Target Note\")"
+   emacsclient --eval "(claude-orgmode-get-backlinks-by-title \"Target Note\")"
    ```
 
 ### Bidirectional Links Only Go One Way
@@ -391,7 +407,7 @@ chmod 644 $(emacsclient --eval "org-roam-db-location")
 
 Run comprehensive diagnostic:
 ```bash
-emacsclient --eval "(org-roam-doctor)"
+emacsclient --eval "(claude-orgmode-doctor)"
 ```
 
 Checks:
@@ -404,8 +420,8 @@ Checks:
 ### Check Package Status
 
 ```bash
-# Check org-roam-skill loaded
-emacsclient --eval "(featurep 'org-roam-skill)"
+# Check claude-orgmode loaded
+emacsclient --eval "(featurep 'claude-orgmode)"
 
 # Check org-roam loaded
 emacsclient --eval "(featurep 'org-roam)"
@@ -437,7 +453,7 @@ emacsclient --eval "org-roam-capture-templates"
 
 If issues persist:
 
-1. **Run diagnostic**: `emacsclient --eval "(org-roam-doctor)"`
+1. **Run diagnostic**: `emacsclient --eval "(claude-orgmode-doctor)"`
 2. **Check logs**: Look for errors in `*Messages*` buffer
 3. **Verify setup**: Ensure all prerequisites are met (see references/installation.md)
 4. **Restart daemon**: Often resolves transient issues

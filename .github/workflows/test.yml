@@ -27,11 +27,6 @@ jobs:
           curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
           echo "$HOME/.eldev/bin" >> $GITHUB_PATH
 
-      - name: Install pandoc
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc
-
       - name: Install dependencies
         run: eldev -C --unstable prepare
 

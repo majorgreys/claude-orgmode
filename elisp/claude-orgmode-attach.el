@@ -1,4 +1,4 @@
-;;; org-roam-skill-attach.el --- File attachment functions -*- lexical-binding: t; -*-
+;;; claude-orgmode-attach.el --- File attachment functions -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025
 
@@ -6,30 +6,30 @@
 ;; Keywords: outlines convenience
 
 ;;; Commentary:
-;; Functions for attaching files to org-roam notes using org-attach.
-;; Also supports attaching files with links in a References section via org-download.
+;; Functions for attaching files to notes using org-attach.
+;; Also supports attaching files with links in a References section
+;; (requires org-download when using `claude-orgmode-attach-file-to-references').
 
 ;;; Code:
 
-(require 'org-roam)
 (require 'org-attach)
-(require 'org-download)
-(require 'org-roam-skill-core)
+(require 'claude-orgmode-core)
+(require 'claude-orgmode-backend)
 
 ;;;###autoload
-(defun org-roam-skill-attach-file (title-or-id file-path)
-  "Attach FILE-PATH to the org-roam note identified by TITLE-OR-ID.
+(defun claude-orgmode-attach-file (title-or-id file-path)
+  "Attach FILE-PATH to the note identified by TITLE-OR-ID.
 Copy the file using org-attach.  Return the attachment directory path."
   (unless (file-exists-p file-path)
     (error "File does not exist: %s" file-path))
 
-  (org-roam-skill--with-node-context
+  (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
      ;; Attach the file using org-attach
      (org-attach-attach file-path nil 'cp)
      ;; Format the buffer after attaching (org-attach modifies PROPERTIES)
-     (org-roam-skill--format-buffer)
+     (claude-orgmode--format-buffer)
      (save-buffer)
      ;; Return info about the attachment
      (let ((attach-dir (org-attach-dir))
@@ -37,13 +37,13 @@ Copy the file using org-attach.  Return the attachment directory path."
        (list :directory attach-dir
              :filename filename
              :full-path (expand-file-name filename attach-dir)
-             :node-title (org-roam-node-title node))))))
+             :node-title (claude-orgmode--backend-node-title node))))))
 
 ;;;###autoload
-(defun org-roam-skill-list-attachments (title-or-id)
-  "List all attachments for the org-roam note identified by TITLE-OR-ID.
+(defun claude-orgmode-list-attachments (title-or-id)
+  "List all attachments for the note identified by TITLE-OR-ID.
 Return a list of attachment info plists with :filename, :size, and :path."
-  (org-roam-skill--with-node-context
+  (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
      (let ((attach-dir (org-attach-dir)))
@@ -63,10 +63,10 @@ Return a list of attachment info plists with :filename, :size, and :path."
          nil)))))
 
 ;;;###autoload
-(defun org-roam-skill-delete-attachment (title-or-id filename)
+(defun claude-orgmode-delete-attachment (title-or-id filename)
   "Delete the attachment FILENAME from the note identified by TITLE-OR-ID.
 Return t on success, nil if attachment doesn't exist."
-  (org-roam-skill--with-node-context
+  (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
      (let* ((attach-dir (org-attach-dir))
@@ -75,16 +75,16 @@ Return t on success, nil if attachment doesn't exist."
            (progn
              (org-attach-delete-one filename)
              ;; Format the buffer after deleting (may modify PROPERTIES)
-             (org-roam-skill--format-buffer)
+             (claude-orgmode--format-buffer)
              (save-buffer)
              t)
          (error "Attachment not found: %s" filename))))))
 
 ;;;###autoload
-(defun org-roam-skill-get-attachment-path (title-or-id filename)
+(defun claude-orgmode-get-attachment-path (title-or-id filename)
   "Get the full path to attachment FILENAME for note TITLE-OR-ID.
 Return the full path if the attachment exists, nil otherwise."
-  (org-roam-skill--with-node-context
+  (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
      (let* ((attach-dir (org-attach-dir))
@@ -94,16 +94,16 @@ Return the full path if the attachment exists, nil otherwise."
          full-path)))))
 
 ;;;###autoload
-(defun org-roam-skill-get-attachment-dir (title-or-id)
+(defun claude-orgmode-get-attachment-dir (title-or-id)
   "Get the attachment directory for the note identified by TITLE-OR-ID.
 Return the directory path, or nil if no attachments exist."
-  (org-roam-skill--with-node-context
+  (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
      (org-attach-dir))))
 
 ;;;###autoload
-(defun org-roam-skill-attach-file-to-references (title-or-id path)
+(defun claude-orgmode-attach-file-to-references (title-or-id path)
   "Attach file from PATH and insert link in the References section of note TITLE-OR-ID.
 
 Creates or appends to a '* References' section at the end of the file with
@@ -113,7 +113,9 @@ Supports:
 - Local file paths: /path/to/file.pdf
 - URLs: https://example.com/file.pdf
 - Base64 data URIs for images"
-  (org-roam-skill--with-node-context
+  (unless (require 'org-download nil 'noerror)
+    (error "Package org-download is required for attach-file-to-references"))
+  (claude-orgmode--with-node-context
    title-or-id
    (lambda (node)
      (let ((original-point (point)))
@@ -143,18 +145,18 @@ Supports:
              (insert (format "- [[file:%s][%s]]" rel-path file-name))
 
              ;; Format and save
-             (org-roam-skill--format-buffer)
+             (claude-orgmode--format-buffer)
              (save-buffer)
 
              ;; Return info
              (list :path new-path
                    :relative-path rel-path
                    :filename file-name
-                   :node-title (org-roam-node-title node)))
+                   :node-title (claude-orgmode--backend-node-title node)))
 
          (error
           (goto-char original-point)
           (error "Failed to attach file: %s" (error-message-string e))))))))
 
-(provide 'org-roam-skill-attach)
-;;; org-roam-skill-attach.el ends here
+(provide 'claude-orgmode-attach)
+;;; claude-orgmode-attach.el ends here

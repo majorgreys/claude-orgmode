@@ -9,6 +9,9 @@ tramp
 # Eldev
 .eldev/
 
+# Beads (local issue tracking)
+.beads/
+
 # OS files
 .DS_Store
 .DS_Store?

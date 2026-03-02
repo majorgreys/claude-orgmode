@@ -20,6 +20,22 @@ If this fails, the daemon is not running. Start it with:
 emacs --daemon
 ```
 
+### Connecting to Named Daemons
+
+When running multiple Emacs configurations, each uses a named socket:
+
+```bash
+# Connect to a specific daemon
+emacsclient --socket-name myemacs --eval "t"
+emacsclient --socket-name server --eval "t"
+```
+
+The `claude-orgmode-eval` wrapper reads `EMACS_SOCKET_NAME` to select the socket:
+
+```bash
+EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+```
+
 ### Loading Scripts
 
 Load a helper script:

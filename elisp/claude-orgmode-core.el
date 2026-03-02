@@ -1,4 +1,4 @@
-;;; org-roam-skill-core.el --- Core utilities for org-roam-skill -*- lexical-binding: t; -*-
+;;; claude-orgmode-core.el --- Core utilities for claude-orgmode -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025
 
@@ -6,23 +6,23 @@
 ;; Keywords: outlines convenience
 
 ;;; Commentary:
-;; Core utility functions shared across org-roam-skill modules.
+;; Core utility functions shared across claude-orgmode modules.
 
 ;;; Code:
 
-(require 'org-roam)
+(require 'claude-orgmode-backend)
 
-(defun org-roam-skill--sanitize-tag (tag)
+(defun claude-orgmode--sanitize-tag (tag)
   "Sanitize TAG by replacing hyphens with underscores.
 Org tags cannot contain hyphens."
   (replace-regexp-in-string "-" "_" tag))
 
-(defun org-roam-skill--with-temp-content-file (content function)
+(defun claude-orgmode--with-temp-content-file (content function)
   "Execute FUNCTION with CONTENT in a temporary file.
 FUNCTION receives the temporary file path as its argument.
 The temporary file is automatically cleaned up after execution.
 Returns the result of calling FUNCTION."
-  (let ((temp-file (make-temp-file "org-roam-skill-" nil ".org")))
+  (let ((temp-file (make-temp-file "claude-orgmode-" nil ".org")))
     (unwind-protect
         (progn
           (with-temp-file temp-file
@@ -32,7 +32,7 @@ Returns the result of calling FUNCTION."
       (when (file-exists-p temp-file)
         (delete-file temp-file)))))
 
-(defun org-roam-skill--looks-like-temp-file (path)
+(defun claude-orgmode--looks-like-temp-file (path)
   "Return non-nil if PATH appears to be a temporary file.
 Checks for common temp directory patterns to prevent accidental deletion
 of important files. Returns nil if PATH is not a string."
@@ -41,7 +41,7 @@ of important files. Returns nil if PATH is not a string."
            (string-prefix-p "/var/tmp/" path)
            (string-prefix-p (temporary-file-directory) path))))
 
-(defun org-roam-skill--read-content-file (file-path)
+(defun claude-orgmode--read-content-file (file-path)
   "Read and return content from FILE-PATH.
 Returns the file contents as a string, or signals an error if the file
 cannot be read. The caller is responsible for deleting the file after use."
@@ -53,7 +53,7 @@ cannot be read. The caller is responsible for deleting the file after use."
     (insert-file-contents file-path)
     (buffer-string)))
 
-(defun org-roam-skill--validate-org-syntax (file-path)
+(defun claude-orgmode--validate-org-syntax (file-path)
   "Validate `org-mode' syntax in FILE-PATH.
 Returns a plist with validation results:
   :valid - t if all checks pass, nil otherwise
@@ -104,16 +104,16 @@ Checks include:
 
     (list :valid valid :errors (nreverse errors))))
 
-(defun org-roam-skill--with-node-context (title-or-id function)
+(defun claude-orgmode--with-node-context (title-or-id function)
   "Execute FUNCTION with point at the node identified by TITLE-OR-ID.
 FUNCTION receives the node as an argument.
 Returns the result of FUNCTION."
   (let* ((node (if (and (stringp title-or-id)
                         (string-match-p "^[0-9a-f]\\{8\\}-" title-or-id))
-                   (org-roam-node-from-id title-or-id)
-                 (org-roam-node-from-title-or-alias title-or-id)))
-         (file (when node (org-roam-node-file node)))
-         (node-id (when node (org-roam-node-id node))))
+                   (claude-orgmode--backend-node-from-id title-or-id)
+                 (claude-orgmode--backend-node-from-title title-or-id)))
+         (file (when node (claude-orgmode--backend-node-file node)))
+         (node-id (when node (claude-orgmode--backend-node-id node))))
     (unless node
       (error "Node not found: %s" title-or-id))
     (unless (file-exists-p file)
@@ -131,60 +131,7 @@ Returns the result of FUNCTION."
               (funcall function node))
           (error "Could not locate node in file: %s" title-or-id))))))
 
-(defun org-roam-skill--get-filename-format ()
-  "Extract filename format from user's org-roam capture templates.
-Return the filename pattern from the default template, or a fallback."
-  (let* ((default-template (assoc "d" org-roam-capture-templates))
-         ;; Skip key, description, type, template-content to get to plist
-         (plist (cdr (cdr (cdr (cdr default-template)))))
-         (target (plist-get plist :target)))
-    (if (and target (eq (car target) 'file+head))
-        ;; Extract first argument of file+head
-        (nth 1 target)
-      ;; Fallback to timestamp-only if no template found
-      "%<%Y%m%d%H%M%S>.org")))
-
-(defun org-roam-skill--expand-filename (title)
-  "Generate a filename for TITLE using the user's configured format.
-Expand placeholders like %<...>, ${slug}, ${title}, etc."
-  (let* ((format-string (org-roam-skill--get-filename-format))
-         ;; Create slug manually: lowercase, replace spaces with underscores
-         (slug (replace-regexp-in-string " " "_" (downcase title)))
-         (timestamp (format-time-string "%Y%m%d%H%M%S"))
-         (filename format-string))
-
-    ;; Replace common placeholders
-    ;; Handle %<...> time format
-    (when (string-match "%<\\([^>]+\\)>" filename)
-      (let ((time-format (match-string 1 filename)))
-        (setq filename (replace-regexp-in-string
-                       "%<[^>]+>"
-                       (format-time-string time-format)
-                       filename))))
-
-    ;; Replace ${slug}
-    (setq filename (replace-regexp-in-string "\\${slug}" slug filename))
-
-    ;; Replace ${title}
-    (setq filename (replace-regexp-in-string "\\${title}" title filename))
-
-    ;; Ensure .org extension
-    (unless (string-suffix-p ".org" filename)
-      (setq filename (concat filename ".org")))
-
-    filename))
-
-(defun org-roam-skill--get-head-content ()
-  "Extract head content from user's org-roam capture template.
-Return the head template string, or nil if not found."
-  (let* ((default-template (assoc "d" org-roam-capture-templates))
-         (plist (cdr (cdr (cdr (cdr default-template)))))
-         (target (plist-get plist :target)))
-    (when (and target (eq (car target) 'file+head))
-      ;; Second argument of file+head is the head content
-      (nth 2 target))))
-
-(defun org-roam-skill--expand-time-formats (template-string)
+(defun claude-orgmode--expand-time-formats (template-string)
   "Expand time format specifiers in TEMPLATE-STRING.
 Handles:
 - %<format> - custom time format (e.g., %<%Y-%m-%d>)
@@ -229,5 +176,13 @@ Returns the expanded string with all time formats replaced."
 
     result))
 
-(provide 'org-roam-skill-core)
-;;; org-roam-skill-core.el ends here
+(defun claude-orgmode--format-buffer ()
+  "Format the current `org-mode' buffer.
+Indents the buffer and aligns tables."
+  (org-indent-region (point-min) (point-max))
+  (goto-char (point-min))
+  (while (re-search-forward "^[ \t]*|" nil t)
+    (org-table-align)))
+
+(provide 'claude-orgmode-core)
+;;; claude-orgmode-core.el ends here
