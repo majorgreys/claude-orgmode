@@ -121,18 +121,15 @@ eldev -C --unstable lint     # Run linting checks
 
 ## Version History
 
-### v3.1.0
-
-- Split into three skills: orgmode (knowledge), org-roam (operations), vulpea (operations)
-- Moved shared elisp, scripts, and references to project root
-- Each skill has its own SKILL.md with appropriate triggers and tools
-
 ### v3.0.0 (Breaking Changes)
 
 - Renamed from `org-roam-skill` to `claude-orgmode`
 - Restructured as Claude Code plugin with `.claude-plugin/marketplace.json`
 - All function prefixes changed: `org-roam-skill-*` → `claude-orgmode-*`
 - Added backend abstraction layer (auto-detect org-roam vs vulpea)
+- Split into three skills: orgmode (knowledge), org-roam (operations), vulpea (operations)
+- Moved shared elisp, scripts, and references to project root
+- Made `org-download` optional (only needed for `attach-file-to-references`)
 - Diagnostics renamed: `org-roam-doctor` → `claude-orgmode-doctor`
 - Script renamed: `org-roam-eval` → `claude-orgmode-eval`
 
