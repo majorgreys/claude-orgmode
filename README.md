@@ -1,14 +1,20 @@
 # claude-orgmode
 
-A Claude Code plugin for org-mode note management via emacsclient (org-roam + vulpea).
+A Claude Code plugin for org-mode knowledge and note management via emacsclient (org-roam + vulpea).
 
 ## What is this?
 
-This is a **Claude Code plugin** that automatically activates when you ask Claude Code questions about your org-roam or vulpea notes. You don't need to learn any commands; just ask naturally:
+This is a **Claude Code plugin** with three skills that automatically activate based on context:
+
+- **orgmode** — Org-mode syntax and formatting knowledge (no Emacs daemon needed)
+- **org-roam** — Note management for org-roam users via emacsclient
+- **vulpea** — Note management for vulpea users via emacsclient
+
+Just ask naturally:
 
 - "Create a new note about functional programming"
 - "Search my notes for anything related to Emacs"
-- "Remember this insight: [your idea]"
+- "How do I format a table in org-mode?"
 - "Show me all backlinks to my React note"
 - "Link my new note about hooks to my React note"
 
@@ -16,23 +22,28 @@ The plugin works with **Claude Code only** (not Claude Desktop, which uses a dif
 
 ## What can it do?
 
-- Create new org-roam notes with tags and content
+**Org-mode knowledge (no Emacs needed):**
+- Org-mode syntax, headings, lists, links, tables
+- Property drawers, timestamps, scheduling
+- Formatting best practices
+
+**Note management (org-roam or vulpea):**
+- Create new notes with tags and content
 - Search and query your note database
 - Find backlinks and connections between notes
 - Add tags and metadata to notes
 - Insert links between notes
 - Analyze your knowledge graph
-- Diagnose org-roam setup issues
+- Diagnose setup issues
 
 ## Prerequisites
 
 1. **Claude Code** installed and running
-2. **Emacs with org-roam (or vulpea) installed and configured**
-3. **Emacs daemon running**: Start with `emacs --daemon` or `emacs --fg-daemon=<name>`
+2. **For org-roam/vulpea skills:** Emacs with org-roam or vulpea installed and configured
+3. **Emacs daemon running**: `emacs --daemon` or `emacs --fg-daemon=<name>`
 4. **emacsclient available**: Should be installed with Emacs
-5. **org-roam directory set up**: Your notes directory (e.g., `~/org-roam/` or `~/Documents/org/roam/`)
 
-**The plugin auto-loads on first use** - no Emacs configuration needed!
+**The plugin auto-loads on first use** — no Emacs configuration needed!
 
 ### Multi-daemon Support
 
@@ -40,32 +51,6 @@ Set `EMACS_SOCKET_NAME` to target a specific Emacs daemon:
 
 ```bash
 EMACS_SOCKET_NAME=thbemacs claude-orgmode-eval "(claude-orgmode-doctor)"
-```
-
-### Optional: Recommended Configuration
-
-For cleaner filenames, you can optionally configure org-roam to use timestamp-only format:
-
-**For Doom Emacs:**
-```elisp
-(setq org-roam-directory "~/Documents/org/roam/")
-
-(after! org-roam
-  (setq org-roam-capture-templates
-        '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>.org" "${title}")
-           :unnarrowed t))))
-```
-
-**For vanilla Emacs:**
-```elisp
-(setq org-roam-directory "~/Documents/org/roam/")
-
-(with-eval-after-load 'org-roam
-  (setq org-roam-capture-templates
-        '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>.org" "${title}")
-           :unnarrowed t))))
 ```
 
 ## Installation
@@ -95,22 +80,30 @@ emacsclient --eval "t"  # Verify Emacs daemon is running
 ```
 claude-orgmode/
 ├── .claude-plugin/
-│   └── marketplace.json
+│   └── marketplace.json          # Plugin metadata (3 skills)
+├── elisp/                        # Shared elisp modules
+│   ├── claude-orgmode.el         # Main package
+│   ├── claude-orgmode-backend.el # Auto-detect org-roam vs vulpea
+│   ├── claude-orgmode-core.el
+│   ├── claude-orgmode-create.el
+│   ├── claude-orgmode-search.el
+│   ├── claude-orgmode-links.el
+│   ├── claude-orgmode-tags.el
+│   ├── claude-orgmode-attach.el
+│   ├── claude-orgmode-utils.el
+│   └── claude-orgmode-doctor.el
+├── scripts/
+│   └── claude-orgmode-eval       # Auto-load wrapper script
+├── references/                   # Shared reference docs
 ├── skills/
-│   └── roam/
+│   ├── orgmode/                  # Org-mode syntax knowledge
+│   │   ├── SKILL.md
+│   │   └── references/
+│   ├── org-roam/                 # Org-roam note management
+│   │   ├── SKILL.md
+│   │   └── references/
+│   └── vulpea/                   # Vulpea note management
 │       ├── SKILL.md
-│       ├── elisp/
-│       │   ├── claude-orgmode.el
-│       │   ├── claude-orgmode-core.el
-│       │   ├── claude-orgmode-create.el
-│       │   ├── claude-orgmode-search.el
-│       │   ├── claude-orgmode-links.el
-│       │   ├── claude-orgmode-tags.el
-│       │   ├── claude-orgmode-attach.el
-│       │   ├── claude-orgmode-utils.el
-│       │   └── claude-orgmode-doctor.el
-│       ├── scripts/
-│       │   └── claude-orgmode-eval
 │       └── references/
 ├── test/
 ├── CLAUDE.md
@@ -128,14 +121,20 @@ eldev -C --unstable lint     # Run linting checks
 
 ## Version History
 
+### v3.1.0
+
+- Split into three skills: orgmode (knowledge), org-roam (operations), vulpea (operations)
+- Moved shared elisp, scripts, and references to project root
+- Each skill has its own SKILL.md with appropriate triggers and tools
+
 ### v3.0.0 (Breaking Changes)
 
 - Renamed from `org-roam-skill` to `claude-orgmode`
 - Restructured as Claude Code plugin with `.claude-plugin/marketplace.json`
 - All function prefixes changed: `org-roam-skill-*` → `claude-orgmode-*`
+- Added backend abstraction layer (auto-detect org-roam vs vulpea)
 - Diagnostics renamed: `org-roam-doctor` → `claude-orgmode-doctor`
 - Script renamed: `org-roam-eval` → `claude-orgmode-eval`
-- Fixed `claude-orgmode--format-buffer` bug (was removed in v2.0 but still called)
 
 ### v2.0.0
 
@@ -145,4 +144,4 @@ eldev -C --unstable lint     # Run linting checks
 
 ## License
 
-This plugin is provided as-is for use with Claude Code and org-roam.
+This plugin is provided as-is for use with Claude Code and org-roam/vulpea.
