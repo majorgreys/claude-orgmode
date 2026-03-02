@@ -84,7 +84,7 @@
       (claude-orgmode-create-note "Target Note" :tags '("test"))
       (claude-orgmode-create-bidirectional-link "Source Note" "Target Note")
       ;; Sync database to register the link
-      (org-roam-db-sync)
+      (claude-orgmode--backend-db-sync)
       (let ((backlinks (claude-orgmode-get-backlinks-by-title "Target Note")))
         (expect (>= (length backlinks) 1) :to-be-truthy))))
 

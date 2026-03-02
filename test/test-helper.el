@@ -1,7 +1,8 @@
 ;;; test-helper.el --- Test utilities for claude-orgmode -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Shared test fixtures and utilities using Buttercup
+;; Shared test fixtures and utilities using Buttercup.
+;; Uses backend dispatch functions so tests work with both org-roam and vulpea.
 
 ;;; Code:
 
@@ -18,8 +19,10 @@
   (setq org-roam-directory claude-orgmode-test-directory
         org-roam-db-location
         (expand-file-name "org-roam.db" claude-orgmode-test-directory))
+  ;; Force backend to org-roam for these tests
+  (setq claude-orgmode--backend 'org-roam)
   ;; Initialize database
-  (org-roam-db-sync))
+  (claude-orgmode--backend-db-sync))
 
 (defun claude-orgmode-test--teardown ()
   "Clean up temporary org-roam directory."
@@ -30,16 +33,13 @@
       (org-roam-db--close))
     ;; Delete temp directory
     (delete-directory claude-orgmode-test-directory t)
-    (setq claude-orgmode-test-directory nil)))
-
-(defun claude-orgmode-test--create-test-note (title tags &optional content)
-  "Create a test note with TITLE, TAGS, and optional CONTENT.
-Returns the file path."
-  (create-org-roam-note title tags content))
+    (setq claude-orgmode-test-directory nil))
+  ;; Reset cached backend
+  (setq claude-orgmode--backend nil))
 
 (defun claude-orgmode-test--count-nodes ()
   "Return the number of nodes in the test database."
-  (length (org-roam-node-list)))
+  (length (claude-orgmode--backend-node-list)))
 
 (defun claude-orgmode-test--get-note-content (file-path)
   "Get the content of the note at FILE-PATH."
@@ -49,7 +49,7 @@ Returns the file path."
 
 (defun claude-orgmode-test--node-exists-p (title)
   "Check if a node with TITLE exists."
-  (not (null (org-roam-node-from-title-or-alias title))))
+  (not (null (claude-orgmode--backend-node-from-title title))))
 
 (provide 'test-helper)
 ;;; test-helper.el ends here
