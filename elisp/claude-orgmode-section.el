@@ -206,5 +206,46 @@ content are preserved.  Returns NODE-ID."
                     (claude-orgmode--looks-like-temp-file content-file))
            (ignore-errors (delete-file content-file))))))))
 
+;;;###autoload
+(cl-defun claude-orgmode-append-to-section (node-id &key content content-file keep-file)
+  "Append CONTENT to the end of the node identified by NODE-ID.
+CONTENT-FILE, when non-nil, is read instead of CONTENT.
+KEEP-FILE prevents auto-deletion of CONTENT-FILE.
+Inserts before the first child heading (if any).  Ensures a blank line
+separator between existing content and the appended text.
+Returns NODE-ID."
+  (claude-orgmode--with-node-context-by-id
+   node-id
+   (lambda (node)
+     (let* ((actual-content (cond
+                              (content-file (claude-orgmode--read-content-file content-file))
+                              (content content)
+                              (t (error "No content provided for append"))))
+            (bounds (claude-orgmode--section-body-bounds node))
+            (end (cdr bounds)))
+       (unwind-protect
+           (progn
+             (goto-char end)
+             ;; Ensure blank line separator if there's existing content
+             (let ((has-content (> end (car bounds))))
+               (when has-content
+                 ;; Back up over trailing whitespace to insert cleanly
+                 (skip-chars-backward " \t\n")
+                 (unless (bolp) (forward-line 1))
+                 (insert "\n")))
+             (insert actual-content)
+             (unless (string-suffix-p "\n" actual-content)
+               (insert "\n"))
+             (claude-orgmode--format-buffer)
+             (save-buffer)
+             (claude-orgmode--backend-db-sync)
+             node-id)
+         ;; Cleanup temp file
+         (when (and content-file
+                    (not keep-file)
+                    (file-exists-p content-file)
+                    (claude-orgmode--looks-like-temp-file content-file))
+           (ignore-errors (delete-file content-file))))))))
+
 (provide 'claude-orgmode-section)
 ;;; claude-orgmode-section.el ends here

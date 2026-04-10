@@ -372,7 +372,71 @@
           (expect content :to-match "New parent body.")
           (expect content :not :to-match "Old parent body.")
           ;; Child must be preserved
-          (expect content :to-match "Child content."))))))
+          (expect content :to-match "Child content."))))
+
+  ;;; Section Append Tests
+
+  (describe "append-to-section"
+    (it "appends to heading body"
+      (let ((test-file (expand-file-name "append-heading.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       as-file-id\n:END:\n")
+          (insert "#+TITLE: Append Test\n\n")
+          (insert "* Section\n")
+          (insert ":PROPERTIES:\n:ID:       as-section-id\n:END:\n")
+          (insert "Existing content.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((result (claude-orgmode-append-to-section "as-section-id"
+                                                         :content "Appended text.")))
+          (expect result :to-equal "as-section-id")
+          (let ((content (claude-orgmode-test--get-note-content test-file)))
+            (expect content :to-match "Existing content.")
+            (expect content :to-match "Appended text.")))))
+
+    (it "appends before child headings"
+      (let ((test-file (expand-file-name "append-before-child.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       abc-file-id\n:END:\n")
+          (insert "#+TITLE: Append Before Child\n\n")
+          (insert "* Parent\n")
+          (insert ":PROPERTIES:\n:ID:       abc-parent-id\n:END:\n")
+          (insert "Parent body.\n\n")
+          (insert "** Child\n")
+          (insert ":PROPERTIES:\n:ID:       abc-child-id\n:END:\n")
+          (insert "Child body.\n"))
+        (claude-orgmode--backend-db-sync)
+        (claude-orgmode-append-to-section "abc-parent-id"
+                                           :content "Appended to parent.")
+        (let ((content (claude-orgmode-test--get-note-content test-file)))
+          (expect content :to-match "Parent body.")
+          (expect content :to-match "Appended to parent.")
+          ;; Appended text should appear before child heading
+          (let ((append-pos (string-match "Appended to parent" content))
+                (child-pos (string-match "\\*\\* Child" content)))
+            (expect (< append-pos child-pos) :to-be t)))))
+
+    (it "appends to empty section"
+      (let ((test-file (expand-file-name "append-empty.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       ae-file-id\n:END:\n")
+          (insert "#+TITLE: Append Empty\n\n")
+          (insert "* Empty Section\n")
+          (insert ":PROPERTIES:\n:ID:       ae-section-id\n:END:\n")
+          (insert "* Next Section\n")
+          (insert ":PROPERTIES:\n:ID:       ae-next-id\n:END:\n")
+          (insert "Next body.\n"))
+        (claude-orgmode--backend-db-sync)
+        (claude-orgmode-append-to-section "ae-section-id"
+                                           :content "Now has content.")
+        (let ((content (claude-orgmode-test--get-note-content test-file)))
+          (expect content :to-match "Now has content.")
+          ;; Content should be under Empty Section, not Next Section
+          (let ((new-pos (string-match "Now has content" content))
+                (next-pos (string-match "\\* Next Section" content)))
+            (expect (< new-pos next-pos) :to-be t))))))))
 
 (provide 'claude-orgmode-integration-test)
 ;;; claude-orgmode-integration-test.el ends here
