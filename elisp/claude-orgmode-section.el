@@ -134,7 +134,10 @@ Signals an error if HEADING already exists under PARENT-ID."
              (if (= parent-level 0)
                  (goto-char (point-max))
                (org-end-of-subtree t)
-               (unless (bolp) (forward-char)))
+               (unless (bolp)
+                 (if (eobp)
+                     (insert "\n")
+                   (forward-char))))
              ;; Ensure we're on a new line
              (unless (bolp) (insert "\n"))
              ;; Insert the heading
