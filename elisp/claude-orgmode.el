@@ -41,6 +41,7 @@
 (require 'claude-orgmode-links)
 (require 'claude-orgmode-tags)
 (require 'claude-orgmode-attach)
+(require 'claude-orgmode-section)
 (require 'claude-orgmode-utils)
 (require 'claude-orgmode-doctor)
 

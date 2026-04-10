@@ -167,7 +167,75 @@
     (it "handles empty database gracefully"
       (expect (claude-orgmode-test--count-nodes) :to-equal 0)
       (expect (claude-orgmode-list-all-tags) :to-equal nil)
-      (expect (claude-orgmode-search-by-title "anything") :to-equal nil))))
+      (expect (claude-orgmode-search-by-title "anything") :to-equal nil)))
+
+  ;;; Section Editing Tests
+
+  (describe "get-section-content"
+    (it "returns preamble for file-level node"
+      (let ((test-file (expand-file-name "preamble-test.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       preamble-node-id\n:END:\n")
+          (insert "#+TITLE: Preamble Test\n")
+          (insert "#+FILETAGS: :test:\n")
+          (insert "\nThis is preamble text.\nSecond line.\n")
+          (insert "\n* First Heading\nHeading content.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((content (claude-orgmode-get-section-content "preamble-node-id")))
+          (expect content :to-match "This is preamble text.")
+          (expect content :to-match "Second line.")
+          (expect content :not :to-match "First Heading")
+          (expect content :not :to-match "TITLE"))))
+
+    (it "returns empty string for file-level node with no preamble"
+      (let ((test-file (expand-file-name "no-preamble.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       no-preamble-id\n:END:\n")
+          (insert "#+TITLE: No Preamble\n")
+          (insert "\n* First Heading\nContent.\n"))
+        (claude-orgmode--backend-db-sync)
+        (expect (claude-orgmode-get-section-content "no-preamble-id")
+                :to-equal "")))
+
+    (it "returns heading body for heading-level node"
+      (let ((test-file (expand-file-name "heading-test.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       file-id\n:END:\n")
+          (insert "#+TITLE: Heading Test\n\n")
+          (insert "* Section One\n")
+          (insert ":PROPERTIES:\n:ID:       section-one-id\n:END:\n")
+          (insert "Body of section one.\n\n")
+          (insert "* Section Two\n")
+          (insert ":PROPERTIES:\n:ID:       section-two-id\n:END:\n")
+          (insert "Body of section two.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((content (claude-orgmode-get-section-content "section-one-id")))
+          (expect content :to-match "Body of section one.")
+          (expect content :not :to-match "Section Two"))))
+
+    (it "excludes child heading content"
+      (let ((test-file (expand-file-name "nested-test.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       nested-file-id\n:END:\n")
+          (insert "#+TITLE: Nested Test\n\n")
+          (insert "* Parent\n")
+          (insert ":PROPERTIES:\n:ID:       parent-id\n:END:\n")
+          (insert "Parent body text.\n\n")
+          (insert "** Child\n")
+          (insert ":PROPERTIES:\n:ID:       child-id\n:END:\n")
+          (insert "Child body text.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((content (claude-orgmode-get-section-content "parent-id")))
+          (expect content :to-match "Parent body text.")
+          (expect content :not :to-match "Child body text."))))
+
+    (it "errors for nonexistent node ID"
+      (expect (claude-orgmode-get-section-content "nonexistent-id")
+              :to-throw 'error))))
 
 (provide 'claude-orgmode-integration-test)
 ;;; claude-orgmode-integration-test.el ends here
