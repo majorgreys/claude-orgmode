@@ -5,6 +5,7 @@ Detailed documentation for all claude-orgmode functions.
 ## Table of Contents
 
 - [Note Creation](#note-creation)
+- [Section Editing](#section-editing)
 - [Search Functions](#search-functions)
 - [Link Management](#link-management)
 - [Tag Management](#tag-management)
@@ -77,6 +78,120 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval \
 - ✅ `'("planning")` (list with one element)
 - ❌ `'planning` (unquoted symbol)
 - ✅ `'("tag1" "tag2")` (list with multiple elements)
+
+## Section Editing
+
+### claude-orgmode-get-section-content
+
+Read the body text of a node by ID.
+
+**Signature**: `(claude-orgmode-get-section-content NODE-ID)`
+
+**Parameters:**
+- `NODE-ID` (string, required): The node's org-id
+
+**Returns**: Body text as a string. Returns `""` for nodes with no body.
+
+**Behavior:**
+- Level-0 nodes: returns preamble (between frontmatter and first heading)
+- Heading nodes: returns content between metadata and next heading
+- Excludes child heading content
+
+**Example:**
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-get-section-content \"abc123-def456\")"
+```
+
+### claude-orgmode-create-section
+
+Create a new heading with an ID under a parent node.
+
+**Signature**: `(claude-orgmode-create-section PARENT-ID HEADING &key content content-file keep-file)`
+
+**Parameters:**
+- `PARENT-ID` (string, required): The parent node's org-id
+- `HEADING` (string, required): The heading text
+- `:content` (string, optional): Initial body content
+- `:content-file` (string, optional): Path to file containing content
+- `:keep-file` (boolean, optional): If `t`, prevent auto-deletion of `:content-file`
+
+**Returns**: The new section's node ID string.
+
+**Behavior:**
+- Heading level auto-detected as parent-level + 1
+- Errors if heading with same text already exists under parent
+- New heading gets an org-id immediately (addressable from creation)
+
+**Example:**
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-create-section \"parent-id\" \"New Section\" :content \"Body text.\")"
+```
+
+### claude-orgmode-replace-section
+
+Replace the body text of a node.
+
+**Signature**: `(claude-orgmode-replace-section NODE-ID &key content content-file keep-file)`
+
+**Parameters:**
+- `NODE-ID` (string, required): The node's org-id
+- `:content` (string, optional): Replacement content (empty string clears body)
+- `:content-file` (string, optional): Path to file containing content
+- `:keep-file` (boolean, optional): If `t`, prevent auto-deletion of `:content-file`
+
+**Returns**: The node ID that was operated on.
+
+**Behavior:**
+- Replaces own body text only — child headings preserved
+- Preserves heading line and properties drawer
+
+**Example:**
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-replace-section \"section-id\" :content \"Updated content.\")"
+```
+
+### claude-orgmode-append-to-section
+
+Append content to the end of a node's body.
+
+**Signature**: `(claude-orgmode-append-to-section NODE-ID &key content content-file keep-file)`
+
+**Parameters:**
+- `NODE-ID` (string, required): The node's org-id
+- `:content` (string, required): Content to append
+- `:content-file` (string, optional): Path to file containing content
+- `:keep-file` (boolean, optional): If `t`, prevent auto-deletion of `:content-file`
+
+**Returns**: The node ID that was operated on.
+
+**Behavior:**
+- Inserts before first child heading (if any)
+- Adds blank line separator between existing and new content
+
+**Example:**
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-append-to-section \"section-id\" :content \"Additional notes.\")"
+```
+
+### claude-orgmode-delete-section
+
+Delete a heading and its entire subtree.
+
+**Signature**: `(claude-orgmode-delete-section NODE-ID)`
+
+**Parameters:**
+- `NODE-ID` (string, required): The node's org-id
+
+**Returns**: The node ID that was deleted.
+
+**Behavior:**
+- Removes heading, properties, body, and all child headings
+- Cannot delete file-level (level 0) nodes — signals error
+
+**Example:**
+```bash
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-delete-section \"section-id\")"
+```
 
 ## Search Functions
 

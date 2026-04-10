@@ -28,17 +28,17 @@
         (insert-file-contents marketplace)
         (let ((json (json-read-from-string (buffer-string))))
           (expect (cdr (assq 'name json)) :to-equal "claude-orgmode")
-          ;; Check skills array references all 3 skills
+          ;; Check skills array references both skills
           (let* ((plugins (cdr (assq 'plugins json)))
                  (first-plugin (aref plugins 0))
                  (skills (cdr (assq 'skills first-plugin))))
-            (expect (length skills) :to-equal 3))))))
+            (expect (length skills) :to-equal 2))))))
 
   (it "all skill directories have SKILL.md"
     (let ((project-dir (locate-dominating-file
                         (file-name-directory (locate-library "claude-orgmode"))
                         "skills")))
-      (dolist (skill '("orgmode" "org-roam" "vulpea"))
+      (dolist (skill '("orgmode" "notes"))
         (let ((skill-md (expand-file-name
                          (format "skills/%s/SKILL.md" skill)
                          project-dir)))
@@ -74,6 +74,7 @@
                        claude-orgmode-backend
                        claude-orgmode-core
                        claude-orgmode-create
+                       claude-orgmode-section
                        claude-orgmode-search
                        claude-orgmode-links
                        claude-orgmode-tags
@@ -105,6 +106,11 @@
                   claude-orgmode-get-attachment-path
                   claude-orgmode-get-attachment-dir
                   claude-orgmode-attach-file-to-references
+                  claude-orgmode-get-section-content
+                  claude-orgmode-create-section
+                  claude-orgmode-replace-section
+                  claude-orgmode-append-to-section
+                  claude-orgmode-delete-section
                   claude-orgmode-check-setup
                   claude-orgmode-get-note-info
                   claude-orgmode-list-recent-notes

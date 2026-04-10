@@ -678,5 +678,61 @@
           (expect (plist-get info :directory) :to-equal "/vulpea/notes")
           (expect (plist-get info :node-count) :to-be 1))))))
 
+;;; Node Context By ID Tests
+
+(describe "claude-orgmode--with-node-context-by-id"
+  (it "calls function with node when ID exists"
+    (let ((claude-orgmode--backend 'org-roam)
+          (org-roam-directory (make-temp-file "org-roam-test-" t))
+          (org-roam-db-location (expand-file-name "org-roam.db"
+                                                   (make-temp-file "org-roam-test-" t))))
+      (unwind-protect
+          (progn
+            (let ((test-file (expand-file-name "test.org" org-roam-directory)))
+              (with-temp-file test-file
+                (insert ":PROPERTIES:\n:ID:       ctx-by-id-test\n:END:\n#+TITLE: Context Test\n"))
+              (org-roam-db-sync)
+              (let ((result (claude-orgmode--with-node-context-by-id
+                             "ctx-by-id-test"
+                             (lambda (node)
+                               (claude-orgmode--backend-node-title node)))))
+                (expect result :to-equal "Context Test"))))
+        (when (file-exists-p org-roam-directory)
+          (delete-directory org-roam-directory t)))))
+
+  (it "errors when ID does not exist"
+    (let ((claude-orgmode--backend 'org-roam)
+          (org-roam-directory (make-temp-file "org-roam-test-" t))
+          (org-roam-db-location (expand-file-name "org-roam.db"
+                                                   (make-temp-file "org-roam-test-" t))))
+      (unwind-protect
+          (progn
+            (org-roam-db-sync)
+            (expect (claude-orgmode--with-node-context-by-id
+                     "nonexistent-id"
+                     (lambda (node) node))
+                    :to-throw 'error))
+        (when (file-exists-p org-roam-directory)
+          (delete-directory org-roam-directory t)))))
+
+  (it "never falls back to title lookup"
+    (let ((claude-orgmode--backend 'org-roam)
+          (org-roam-directory (make-temp-file "org-roam-test-" t))
+          (org-roam-db-location (expand-file-name "org-roam.db"
+                                                   (make-temp-file "org-roam-test-" t))))
+      (unwind-protect
+          (progn
+            (let ((test-file (expand-file-name "test.org" org-roam-directory)))
+              (with-temp-file test-file
+                (insert ":PROPERTIES:\n:ID:       no-fallback-id\n:END:\n#+TITLE: Fallback Test\n"))
+              (org-roam-db-sync)
+              ;; Passing the title string should error, not find the node
+              (expect (claude-orgmode--with-node-context-by-id
+                       "Fallback Test"
+                       (lambda (node) node))
+                      :to-throw 'error)))
+        (when (file-exists-p org-roam-directory)
+          (delete-directory org-roam-directory t))))))
+
 (provide 'claude-orgmode-test)
 ;;; claude-orgmode-test.el ends here

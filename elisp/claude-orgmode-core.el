@@ -131,6 +131,28 @@ Returns the result of FUNCTION."
               (funcall function node))
           (error "Could not locate node in file: %s" title-or-id))))))
 
+(defun claude-orgmode--with-node-context-by-id (node-id function)
+  "Execute FUNCTION with point at the node identified by NODE-ID.
+Unlike `claude-orgmode--with-node-context', this function only accepts
+node IDs and never falls back to title lookup.
+FUNCTION receives the node as an argument.
+Returns the result of FUNCTION."
+  (let* ((node (claude-orgmode--backend-node-from-id node-id))
+         (file (when node (claude-orgmode--backend-node-file node))))
+    (unless node
+      (error "Node not found for ID: %s" node-id))
+    (unless (file-exists-p file)
+      (error "File not found: %s" file))
+    (with-current-buffer (find-file-noselect file)
+      (save-excursion
+        (goto-char (point-min))
+        (if (re-search-forward
+             (format ":ID:[ \t]+%s" (regexp-quote node-id)) nil t)
+            (progn
+              (org-back-to-heading-or-point-min t)
+              (funcall function node))
+          (error "Could not locate node in file: %s" node-id))))))
+
 (defun claude-orgmode--expand-time-formats (template-string)
   "Expand time format specifiers in TEMPLATE-STRING.
 Handles:

@@ -2,25 +2,23 @@
 
 ## What This Is
 
-A Claude Code plugin (claude-orgmode) with three skills:
+A Claude Code plugin (claude-orgmode) with two skills:
 1. **orgmode** - Pure org-mode syntax and formatting knowledge
-2. **org-roam** - Note management via org-roam backend + emacsclient
-3. **vulpea** - Note management via vulpea backend + emacsclient
+2. **notes** - Note management via emacsclient (org-roam and vulpea backends, auto-detected)
 
 The elisp code and eval script are shared; the backend abstraction layer auto-detects org-roam or vulpea.
 
 ## Architecture
 
 **Plugin structure:**
-- `.claude-plugin/marketplace.json` - Plugin metadata, references all 3 skills
+- `.claude-plugin/marketplace.json` - Plugin metadata, references both skills
 - `skills/orgmode/SKILL.md` - Knowledge-only skill (no tools)
-- `skills/org-roam/SKILL.md` - org-roam operational skill
-- `skills/vulpea/SKILL.md` - vulpea operational skill
+- `skills/notes/SKILL.md` - Note management skill (create, edit, search, link)
 
 **Shared code:**
 - `elisp/claude-orgmode.el` - Main package loading all modules
 - `elisp/claude-orgmode-backend.el` - Backend auto-detection (org-roam vs vulpea)
-- `elisp/claude-orgmode-*.el` - Modular implementations (core, create, search, links, tags, attach, utils, doctor)
+- `elisp/claude-orgmode-*.el` - Modular implementations (core, create, section, search, links, tags, attach, utils, doctor)
 - `scripts/claude-orgmode-eval` - Auto-load wrapper script
 
 **Shared references:**
@@ -31,8 +29,8 @@ The elisp code and eval script are shared; the backend abstraction layer auto-de
 
 **Skill-specific references:**
 - `skills/orgmode/references/` - org-syntax.md, properties.md, timestamps.md, links.md, examples.md
-- `skills/org-roam/references/org-roam-api.md` - Org-roam API reference
-- `skills/vulpea/references/vulpea-api.md` - Vulpea API reference
+- `skills/notes/references/org-roam-api.md` - Org-roam low-level API reference
+- `skills/notes/references/vulpea-api.md` - Vulpea low-level API reference
 
 ## Auto-Load Architecture
 
