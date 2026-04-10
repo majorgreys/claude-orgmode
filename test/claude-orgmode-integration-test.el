@@ -436,7 +436,52 @@
           ;; Content should be under Empty Section, not Next Section
           (let ((new-pos (string-match "Now has content" content))
                 (next-pos (string-match "\\* Next Section" content)))
-            (expect (< new-pos next-pos) :to-be t))))))))
+            (expect (< new-pos next-pos) :to-be t)))))))
+
+  ;;; Section Delete Tests
+
+  (describe "delete-section"
+    (it "deletes a heading and its subtree"
+      (let ((test-file (expand-file-name "delete-section.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       ds-file-id\n:END:\n")
+          (insert "#+TITLE: Delete Test\n\n")
+          (insert "* Keep This\n")
+          (insert ":PROPERTIES:\n:ID:       ds-keep-id\n:END:\n")
+          (insert "Keep body.\n\n")
+          (insert "* Delete This\n")
+          (insert ":PROPERTIES:\n:ID:       ds-delete-id\n:END:\n")
+          (insert "Delete body.\n\n")
+          (insert "** Delete Child\n")
+          (insert ":PROPERTIES:\n:ID:       ds-child-id\n:END:\n")
+          (insert "Child body.\n\n")
+          (insert "* Also Keep\n")
+          (insert ":PROPERTIES:\n:ID:       ds-also-keep-id\n:END:\n")
+          (insert "Also keep body.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((result (claude-orgmode-delete-section "ds-delete-id")))
+          (expect result :to-equal "ds-delete-id")
+          (let ((content (claude-orgmode-test--get-note-content test-file)))
+            (expect content :to-match "Keep body.")
+            (expect content :to-match "Also keep body.")
+            (expect content :not :to-match "Delete body.")
+            (expect content :not :to-match "Child body.")
+            (expect content :not :to-match "Delete This")))))
+
+    (it "errors when trying to delete a file-level node"
+      (let ((test-file (expand-file-name "delete-file-level.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       ds-file-level-id\n:END:\n")
+          (insert "#+TITLE: File Level Delete\n"))
+        (claude-orgmode--backend-db-sync)
+        (expect (claude-orgmode-delete-section "ds-file-level-id")
+                :to-throw 'error)))
+
+    (it "errors for nonexistent node ID"
+      (expect (claude-orgmode-delete-section "ds-nonexistent-id")
+              :to-throw 'error))))
 
 (provide 'claude-orgmode-integration-test)
 ;;; claude-orgmode-integration-test.el ends here

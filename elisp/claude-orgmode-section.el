@@ -247,5 +247,28 @@ Returns NODE-ID."
                     (claude-orgmode--looks-like-temp-file content-file))
            (ignore-errors (delete-file content-file))))))))
 
+;;;###autoload
+(defun claude-orgmode-delete-section (node-id)
+  "Delete the heading identified by NODE-ID and its entire subtree.
+Cannot delete file-level (level 0) nodes.
+Returns NODE-ID."
+  (claude-orgmode--with-node-context-by-id
+   node-id
+   (lambda (node)
+     (when (= (claude-orgmode--backend-node-level node) 0)
+       (error "Cannot delete file-level nodes"))
+     (let ((start (line-beginning-position))
+           (end (save-excursion
+                  (org-end-of-subtree t)
+                  ;; Include trailing newline if present
+                  (when (and (not (eobp)) (looking-at-p "\n"))
+                    (forward-char 1))
+                  (point))))
+       (delete-region start end)
+       (claude-orgmode--format-buffer)
+       (save-buffer)
+       (claude-orgmode--backend-db-sync)
+       node-id))))
+
 (provide 'claude-orgmode-section)
 ;;; claude-orgmode-section.el ends here
