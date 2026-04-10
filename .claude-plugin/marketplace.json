@@ -10,6 +10,6 @@
     "description": "Org-mode knowledge and note management via emacsclient",
     "source": "./",
     "strict": false,
-    "skills": ["./skills/orgmode", "./skills/org-roam", "./skills/vulpea"]
+    "skills": ["./skills/orgmode", "./skills/notes"]
   }]
 }
