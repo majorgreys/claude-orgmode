@@ -250,7 +250,73 @@
 
     (it "errors for nonexistent node ID"
       (expect (claude-orgmode-get-section-content "nonexistent-id")
-              :to-throw 'error))))
+              :to-throw 'error)))
+
+  ;;; Section Creation Tests
+
+  (describe "create-section"
+    (it "creates a heading under a file-level node"
+      (let ((test-file (expand-file-name "create-section-file.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       cs-file-id\n:END:\n")
+          (insert "#+TITLE: Create Section Test\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((new-id (claude-orgmode-create-section "cs-file-id" "New Section"
+                                                      :content "Section body.")))
+          (expect new-id :not :to-be nil)
+          (expect (stringp new-id) :to-be t)
+          ;; Verify the heading was created
+          (let ((content (claude-orgmode-test--get-note-content test-file)))
+            (expect content :to-match "^\\* New Section")
+            (expect content :to-match "Section body.")
+            (expect content :to-match (regexp-quote new-id))))))
+
+    (it "creates heading at correct level under a heading node"
+      (let ((test-file (expand-file-name "create-section-nested.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       cs-nested-file-id\n:END:\n")
+          (insert "#+TITLE: Nested Create Test\n\n")
+          (insert "* Parent\n")
+          (insert ":PROPERTIES:\n:ID:       cs-parent-id\n:END:\n")
+          (insert "Parent body.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((new-id (claude-orgmode-create-section "cs-parent-id" "Child Section"
+                                                      :content "Child body.")))
+          (let ((content (claude-orgmode-test--get-note-content test-file)))
+            (expect content :to-match "^\\*\\* Child Section")
+            (expect content :to-match "Child body.")))))
+
+    (it "errors on duplicate heading"
+      (let ((test-file (expand-file-name "create-section-dup.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       cs-dup-file-id\n:END:\n")
+          (insert "#+TITLE: Duplicate Test\n\n")
+          (insert "* Existing\n")
+          (insert ":PROPERTIES:\n:ID:       cs-existing-id\n:END:\n")
+          (insert "Body.\n"))
+        (claude-orgmode--backend-db-sync)
+        (expect (claude-orgmode-create-section "cs-dup-file-id" "Existing")
+                :to-throw 'error)))
+
+    (it "creates section with content from file"
+      (let ((test-file (expand-file-name "create-section-cfile.org"
+                                          org-roam-directory))
+            (content-file (make-temp-file "section-content-" nil ".org")))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       cs-cfile-id\n:END:\n")
+          (insert "#+TITLE: Content File Test\n"))
+        (with-temp-file content-file
+          (insert "Content from temp file."))
+        (claude-orgmode--backend-db-sync)
+        (claude-orgmode-create-section "cs-cfile-id" "From File"
+                                        :content-file content-file)
+        (let ((content (claude-orgmode-test--get-note-content test-file)))
+          (expect content :to-match "Content from temp file."))
+        ;; Temp file should be auto-deleted
+        (expect (file-exists-p content-file) :not :to-be-truthy)))))
 
 (provide 'claude-orgmode-integration-test)
 ;;; claude-orgmode-integration-test.el ends here

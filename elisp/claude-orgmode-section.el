@@ -98,5 +98,74 @@ Signals an error if NODE-ID is not found."
            ""
          (string-trim-right content))))))
 
+;;;###autoload
+(cl-defun claude-orgmode-create-section (parent-id heading &key content content-file keep-file)
+  "Create a new heading under the node identified by PARENT-ID.
+HEADING is the heading text (exact match checked for duplicates).
+Heading level is auto-detected as parent-level + 1.
+
+CONTENT and CONTENT-FILE work the same as in `claude-orgmode-create-note'.
+KEEP-FILE, when non-nil, prevents auto-deletion of CONTENT-FILE.
+Returns the new section's node ID string.
+Signals an error if HEADING already exists under PARENT-ID."
+  (claude-orgmode--with-node-context-by-id
+   parent-id
+   (lambda (node)
+     (let* ((parent-level (claude-orgmode--backend-node-level node))
+            (child-level (1+ parent-level))
+            (actual-content (cond
+                              (content-file (claude-orgmode--read-content-file content-file))
+                              (content content)
+                              (t nil))))
+       (unwind-protect
+           (progn
+             ;; Check for duplicate heading
+             (save-excursion
+               (let ((search-end (if (= parent-level 0)
+                                     (point-max)
+                                   (save-excursion (org-end-of-subtree t) (point)))))
+                 (when (= parent-level 0)
+                   (goto-char (point-min)))
+                 (let ((heading-re (format "^\\*\\{%d\\} " child-level)))
+                   (while (re-search-forward heading-re search-end t)
+                     (when (equal (org-get-heading t t t t) heading)
+                       (error "Heading \"%s\" already exists under this node" heading))))))
+             ;; Find insertion point: end of parent's subtree
+             (if (= parent-level 0)
+                 (goto-char (point-max))
+               (org-end-of-subtree t)
+               (unless (bolp) (forward-char)))
+             ;; Ensure we're on a new line
+             (unless (bolp) (insert "\n"))
+             ;; Insert the heading
+             (insert (make-string child-level ?*) " " heading "\n")
+             ;; Move to the heading we just inserted
+             (forward-line -1)
+             ;; Create ID for the new heading
+             (let ((new-id (org-id-get-create)))
+               ;; Move past the PROPERTIES drawer to insert content
+               (save-excursion
+                 (forward-line 1)
+                 (when (looking-at-p "[ \t]*:PROPERTIES:")
+                   (re-search-forward "^[ \t]*:END:" nil t)
+                   (forward-line 1))
+                 ;; Insert content if provided
+                 (when actual-content
+                   (insert actual-content)
+                   (unless (string-suffix-p "\n" actual-content)
+                     (insert "\n"))))
+               ;; Format, save, sync
+               (claude-orgmode--format-buffer)
+               (save-buffer)
+               (claude-orgmode--backend-db-sync)
+               ;; Return the new ID
+               new-id))
+         ;; Cleanup temp file
+         (when (and content-file
+                    (not keep-file)
+                    (file-exists-p content-file)
+                    (claude-orgmode--looks-like-temp-file content-file))
+           (ignore-errors (delete-file content-file))))))))
+
 (provide 'claude-orgmode-section)
 ;;; claude-orgmode-section.el ends here
