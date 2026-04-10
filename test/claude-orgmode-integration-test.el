@@ -316,7 +316,63 @@
         (let ((content (claude-orgmode-test--get-note-content test-file)))
           (expect content :to-match "Content from temp file."))
         ;; Temp file should be auto-deleted
-        (expect (file-exists-p content-file) :not :to-be-truthy)))))
+        (expect (file-exists-p content-file) :not :to-be-truthy))))
+
+  ;;; Section Replace Tests
+
+  (describe "replace-section"
+    (it "replaces heading body content"
+      (let ((test-file (expand-file-name "replace-heading.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       rs-file-id\n:END:\n")
+          (insert "#+TITLE: Replace Test\n\n")
+          (insert "* Section\n")
+          (insert ":PROPERTIES:\n:ID:       rs-section-id\n:END:\n")
+          (insert "Old content.\n"))
+        (claude-orgmode--backend-db-sync)
+        (let ((result (claude-orgmode-replace-section "rs-section-id"
+                                                       :content "New content.")))
+          (expect result :to-equal "rs-section-id")
+          (let ((content (claude-orgmode-test--get-note-content test-file)))
+            (expect content :to-match "New content.")
+            (expect content :not :to-match "Old content.")))))
+
+    (it "replaces file-level preamble"
+      (let ((test-file (expand-file-name "replace-preamble.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       rs-preamble-id\n:END:\n")
+          (insert "#+TITLE: Preamble Replace\n\n")
+          (insert "Old preamble.\n\n")
+          (insert "* Heading\nHeading content.\n"))
+        (claude-orgmode--backend-db-sync)
+        (claude-orgmode-replace-section "rs-preamble-id" :content "New preamble.")
+        (let ((content (claude-orgmode-test--get-note-content test-file)))
+          (expect content :to-match "New preamble.")
+          (expect content :not :to-match "Old preamble.")
+          ;; Heading should be preserved
+          (expect content :to-match "Heading content."))))
+
+    (it "preserves child headings"
+      (let ((test-file (expand-file-name "replace-preserve.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       rp-file-id\n:END:\n")
+          (insert "#+TITLE: Preserve Test\n\n")
+          (insert "* Parent\n")
+          (insert ":PROPERTIES:\n:ID:       rp-parent-id\n:END:\n")
+          (insert "Old parent body.\n\n")
+          (insert "** Child\n")
+          (insert ":PROPERTIES:\n:ID:       rp-child-id\n:END:\n")
+          (insert "Child content.\n"))
+        (claude-orgmode--backend-db-sync)
+        (claude-orgmode-replace-section "rp-parent-id" :content "New parent body.")
+        (let ((content (claude-orgmode-test--get-note-content test-file)))
+          (expect content :to-match "New parent body.")
+          (expect content :not :to-match "Old parent body.")
+          ;; Child must be preserved
+          (expect content :to-match "Child content."))))))
 
 (provide 'claude-orgmode-integration-test)
 ;;; claude-orgmode-integration-test.el ends here

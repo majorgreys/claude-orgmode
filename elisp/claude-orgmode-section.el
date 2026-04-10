@@ -170,5 +170,41 @@ Signals an error if HEADING already exists under PARENT-ID."
                     (claude-orgmode--looks-like-temp-file content-file))
            (ignore-errors (delete-file content-file))))))))
 
+;;;###autoload
+(cl-defun claude-orgmode-replace-section (node-id &key content content-file keep-file)
+  "Replace the body text of the node identified by NODE-ID.
+CONTENT is the replacement string.  CONTENT-FILE, when non-nil, is read
+instead of CONTENT.  KEEP-FILE prevents auto-deletion of CONTENT-FILE.
+Operates on the node's own body text only — child headings and their
+content are preserved.  Returns NODE-ID."
+  (claude-orgmode--with-node-context-by-id
+   node-id
+   (lambda (node)
+     (let* ((actual-content (cond
+                              (content-file (claude-orgmode--read-content-file content-file))
+                              (content content)
+                              (t "")))
+            (bounds (claude-orgmode--section-body-bounds node))
+            (start (car bounds))
+            (end (cdr bounds)))
+       (unwind-protect
+           (progn
+             (delete-region start end)
+             (goto-char start)
+             (when (and actual-content (not (string-empty-p actual-content)))
+               (insert actual-content)
+               (unless (string-suffix-p "\n" actual-content)
+                 (insert "\n")))
+             (claude-orgmode--format-buffer)
+             (save-buffer)
+             (claude-orgmode--backend-db-sync)
+             node-id)
+         ;; Cleanup temp file
+         (when (and content-file
+                    (not keep-file)
+                    (file-exists-p content-file)
+                    (claude-orgmode--looks-like-temp-file content-file))
+           (ignore-errors (delete-file content-file))))))))
+
 (provide 'claude-orgmode-section)
 ;;; claude-orgmode-section.el ends here
