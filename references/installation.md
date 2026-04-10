@@ -117,14 +117,14 @@ emacs --init-directory ~/.config/myemacs --fg-daemon=myemacs
 emacs --init-directory ~/.config/doom --fg-daemon=doom
 ```
 
-Set `EMACS_SOCKET_NAME` to target a specific daemon with `claude-orgmode-eval`:
+Use `-s` to target a specific daemon with `claude-orgmode-eval`:
 
 ```bash
 # Target myemacs
-EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval -s myemacs "(claude-orgmode-doctor)"
 
 # Target doom
-EMACS_SOCKET_NAME=doom ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval -s doom "(claude-orgmode-doctor)"
 ```
 
 To discover available sockets:

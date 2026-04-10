@@ -46,9 +46,9 @@ ls /run/user/$(id -u)/emacs/ 2>/dev/null || ls /tmp/emacs$(id -u)/ 2>/dev/null
 ```
 
 **Solution:**
-Set `EMACS_SOCKET_NAME` to target the correct daemon:
+Use `-s` to target the correct daemon:
 ```bash
-EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval -s myemacs "(claude-orgmode-doctor)"
 ```
 
 **Verify which daemon you're connected to:**

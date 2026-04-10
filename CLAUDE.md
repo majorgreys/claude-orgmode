@@ -38,7 +38,7 @@ The elisp code and eval script are shared; the backend abstraction layer auto-de
 - Checks if `claude-orgmode` is loaded in daemon
 - Auto-loads from `elisp/` directory on first call
 - Subsequent calls use already-loaded package (no overhead)
-- Supports `EMACS_SOCKET_NAME` env var for multi-daemon setups
+- Supports `-s`/`--socket` flag for multi-daemon setups (falls back to `EMACS_SOCKET_NAME` env var)
 
 **Usage pattern:**
 ```bash
@@ -46,7 +46,7 @@ The elisp code and eval script are shared; the backend abstraction layer auto-de
 ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
 
 # Target a specific daemon
-EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval -s myemacs "(claude-orgmode-create-note \"Title\")"
 ```
 
 ## Key Implementation Details

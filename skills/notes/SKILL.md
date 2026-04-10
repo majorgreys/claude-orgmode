@@ -44,10 +44,10 @@ For org-mode syntax reference, see the **orgmode** skill.
 
 **Multi-daemon support:**
 
-Set `EMACS_SOCKET_NAME` to target a specific Emacs daemon:
+Use `-s` to target a specific Emacs daemon:
 
 ```bash
-EMACS_SOCKET_NAME=myemacs ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-doctor)"
+${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval -s myemacs "(claude-orgmode-doctor)"
 ```
 
 To discover available sockets:

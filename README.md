@@ -51,10 +51,10 @@ The plugin auto-detects whether to use org-roam or vulpea. When both are loaded 
 
 ### Multi-daemon Support
 
-Set `EMACS_SOCKET_NAME` to target a specific Emacs daemon:
+Use `-s` to target a specific Emacs daemon:
 
 ```bash
-EMACS_SOCKET_NAME=myemacs claude-orgmode-eval "(claude-orgmode-doctor)"
+claude-orgmode-eval -s myemacs "(claude-orgmode-doctor)"
 ```
 
 ## Installation
@@ -145,7 +145,7 @@ eldev -C --unstable lint     # Run linting checks
 ### v2.0.0
 
 - Removed general org-mode formatting (use `orgmode` skill instead)
-- Added multi-daemon support via `EMACS_SOCKET_NAME`
+- Added multi-daemon support via `-s` flag (env var `EMACS_SOCKET_NAME` as fallback)
 - Added file attachment support via org-attach and org-download
 
 ## License
