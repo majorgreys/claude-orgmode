@@ -1,9 +1,9 @@
 ---
 name: notes
 description: |
-  Note management via emacsclient for org-roam and vulpea users. Create, search, edit, and link notes. Never use Read/Write/Edit on notes directly.
+  Org-mode note management via emacsclient. Create, search, edit, and link org notes. Never use Read/Write/Edit on org notes directly.
 
-  Use this skill whenever the user mentions org-roam, vulpea, roam notes, Zettelkasten, backlinks, knowledge graph, PKM, second brain, or wants to create, update, edit, search, or link notes. Also use when the user asks to update a section, append to a note, or replace note content — the section editing API handles this without creating duplicates.
+  Use this skill whenever the user mentions org-mode notes, org notes, .org files for notes, roam notes, org-roam, vulpea, Zettelkasten, backlinks, knowledge graph, PKM, second brain, or wants to create, update, edit, search, or link notes in org-mode. Also use when the user asks to update a section, append to a note, or replace note content — the section editing API handles this without creating duplicates.
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval:*)
   - Bash(git status:*)
@@ -15,31 +15,31 @@ allowed-tools:
   - Bash(emacsclient:*)
 ---
 
-# Note Management Skill
+# Org-Mode Note Management
 
-Create, search, edit, and link notes via emacsclient. Works with both **org-roam** and **vulpea** backends — the backend is auto-detected, and the API is identical regardless of which is installed.
+Create, search, edit, and link org-mode notes via emacsclient. The backend (org-roam or vulpea) is auto-detected — the API is identical regardless of which is installed.
 
 For org-mode syntax reference, see the **orgmode** skill.
 
 ## Critical: Don't Use Direct File Tools
 
-**NEVER use Read/Write/Edit tools on notes.** Always use this skill's functions instead.
+**NEVER use Read/Write/Edit tools on org notes.** Always use this skill's functions instead.
 
 **Why:**
-- Notes require database updates after modification
+- Org notes require database updates after modification
 - IDs must be generated through org-id
 - File creation must respect user's capture templates
 - Direct file operations bypass database sync and break backlinks
 
 ## Permissions
 
-**You have permission to run all emacsclient commands without asking the user first.** Execute emacsclient commands directly using the Bash tool for all note operations.
+**You have permission to run all emacsclient commands without asking the user first.** Execute emacsclient commands directly using the Bash tool for all org note operations.
 
 ## Quick Reference
 
 **Prerequisites:**
 - Emacs daemon running: `emacs --daemon` or `emacs --fg-daemon=<name>`
-- org-roam or vulpea installed in Emacs
+- org-roam or vulpea installed in Emacs (backend auto-detected)
 - Skill auto-loads on first use (no manual config needed)
 
 **Multi-daemon support:**
@@ -175,7 +175,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/claude-orgmode-eval "(claude-orgmode-check-setup)"
 
 ## Available Functions
 
-All functions use `claude-orgmode-` prefix. The backend (org-roam or vulpea) is auto-detected.
+All functions use the `claude-orgmode-` prefix. The backend is auto-detected.
 
 **Note Creation:**
 - `claude-orgmode-create-note` — Create new notes
@@ -223,7 +223,7 @@ Strip quotes from strings and parse structures as needed.
 
 ## Best Practices
 
-1. **Use section editing to update notes** — never call `create-note` to update an existing note
+1. **Use section editing to update notes** — never call `create-note` to update an existing org note
 2. **Search first, then edit** — find the node ID via search, then use section functions
 3. **Use lists for tags** — always `'("tag")` not `"tag"`
 4. **Use :content-file for large content** — avoids shell escaping issues, auto-cleaned up
@@ -236,5 +236,5 @@ Strip quotes from strings and parse structures as needed.
 - **${CLAUDE_PLUGIN_ROOT}/references/emacsclient-usage.md** — Detailed emacsclient patterns
 - **${CLAUDE_PLUGIN_ROOT}/references/installation.md** — Setup and configuration guide
 - **${CLAUDE_PLUGIN_ROOT}/references/troubleshooting.md** — Common issues and solutions
-- **org-roam-api.md** — Org-roam low-level API reference (org-roam users only)
-- **vulpea-api.md** — Vulpea low-level API reference (vulpea users only)
+- **org-roam-api.md** — Low-level org-roam API (read only if you need direct org-roam calls)
+- **vulpea-api.md** — Low-level vulpea API (read only if you need direct vulpea calls)
