@@ -51,6 +51,9 @@ at any level or end of buffer."
   (save-excursion
     ;; Move past heading line
     (forward-line 1)
+    ;; Assumes PROPERTIES drawer precedes planning lines (org-id/org-roam convention).
+    ;; Standard org-mode allows the reverse, but all nodes managed by this plugin
+    ;; are created with PROPERTIES first.
     ;; Skip PROPERTIES drawer if present
     (when (and (not (eobp)) (looking-at-p "[ \t]*:PROPERTIES:"))
       (re-search-forward "^[ \t]*:END:" nil t)

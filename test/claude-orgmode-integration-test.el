@@ -216,6 +216,21 @@
           (expect content :to-match "Body of section one.")
           (expect content :not :to-match "Section Two"))))
 
+    (it "returns empty string for heading-level node with no body"
+      (let ((test-file (expand-file-name "empty-heading.org"
+                                          org-roam-directory)))
+        (with-temp-file test-file
+          (insert ":PROPERTIES:\n:ID:       eh-file-id\n:END:\n")
+          (insert "#+TITLE: Empty Heading Test\n\n")
+          (insert "* Empty Section\n")
+          (insert ":PROPERTIES:\n:ID:       eh-empty-id\n:END:\n")
+          (insert "* Next Section\n")
+          (insert ":PROPERTIES:\n:ID:       eh-next-id\n:END:\n")
+          (insert "Next body.\n"))
+        (claude-orgmode--backend-db-sync)
+        (expect (claude-orgmode-get-section-content "eh-empty-id")
+                :to-equal "")))
+
     (it "excludes child heading content"
       (let ((test-file (expand-file-name "nested-test.org"
                                           org-roam-directory)))
