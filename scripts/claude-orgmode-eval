@@ -1,11 +1,14 @@
 #!/bin/bash
 # Auto-loading wrapper for claude-orgmode emacsclient calls
 #
-# Usage: claude-orgmode-eval "(claude-orgmode-create-note \"Title\")"
+# Usage: claude-orgmode-eval [-s SOCKET] "(elisp-expression)"
+#
+# Options:
+#   -s, --socket SOCKET  Socket name for emacsclient (e.g., "myemacs", "server")
 #
 # Environment variables:
-#   EMACS_SOCKET_NAME - Socket name for emacsclient (e.g., "myemacs", "server")
-#                       If not set, uses emacsclient's default behavior.
+#   EMACS_SOCKET_NAME - Fallback socket name if -s is not provided.
+#                       If neither is set, uses emacsclient's default behavior.
 #
 # This script ensures claude-orgmode is loaded before executing the elisp expression.
 # On first call, it loads the package into the running Emacs daemon.
@@ -13,8 +16,23 @@
 
 set -euo pipefail
 
+# Parse options
+SOCKET_NAME="${EMACS_SOCKET_NAME:-}"
+while [[ $# -gt 1 ]]; do
+    case "$1" in
+        -s|--socket)
+            SOCKET_NAME="$2"
+            shift 2
+            ;;
+        *)
+            echo "Usage: claude-orgmode-eval [-s SOCKET] \"(elisp-expression)\"" >&2
+            exit 1
+            ;;
+    esac
+done
+
 if [[ $# -ne 1 ]]; then
-    echo "Usage: claude-orgmode-eval \"(elisp-expression)\"" >&2
+    echo "Usage: claude-orgmode-eval [-s SOCKET] \"(elisp-expression)\"" >&2
     exit 1
 fi
 
@@ -24,8 +42,8 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Build emacsclient command with optional socket
 EMACSCLIENT=(emacsclient)
-if [[ -n "${EMACS_SOCKET_NAME:-}" ]]; then
-    EMACSCLIENT+=(--socket-name "$EMACS_SOCKET_NAME")
+if [[ -n "$SOCKET_NAME" ]]; then
+    EMACSCLIENT+=(--socket-name "$SOCKET_NAME")
 fi
 
 # Check if claude-orgmode is loaded, load if not
@@ -36,8 +54,8 @@ fi
         (require 'claude-orgmode))" >/dev/null || {
         echo "Error: Failed to load claude-orgmode package" >&2
         echo "Ensure Emacs daemon is running with org-roam or vulpea installed" >&2
-        if [[ -n "${EMACS_SOCKET_NAME:-}" ]]; then
-            echo "Socket: $EMACS_SOCKET_NAME" >&2
+        if [[ -n "$SOCKET_NAME" ]]; then
+            echo "Socket: $SOCKET_NAME" >&2
         fi
         exit 1
     }
