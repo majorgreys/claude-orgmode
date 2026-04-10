@@ -138,8 +138,7 @@ node IDs and never falls back to title lookup.
 FUNCTION receives the node as an argument.
 Returns the result of FUNCTION."
   (let* ((node (claude-orgmode--backend-node-from-id node-id))
-         (file (when node (claude-orgmode--backend-node-file node)))
-         (id (when node (claude-orgmode--backend-node-id node))))
+         (file (when node (claude-orgmode--backend-node-file node))))
     (unless node
       (error "Node not found for ID: %s" node-id))
     (unless (file-exists-p file)
@@ -148,7 +147,7 @@ Returns the result of FUNCTION."
       (save-excursion
         (goto-char (point-min))
         (if (re-search-forward
-             (format ":ID:[ \t]+%s" (regexp-quote id)) nil t)
+             (format ":ID:[ \t]+%s" (regexp-quote node-id)) nil t)
             (progn
               (org-back-to-heading-or-point-min t)
               (funcall function node))

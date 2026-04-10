@@ -20,16 +20,27 @@
 (require 'claude-orgmode-core)
 (require 'claude-orgmode-backend)
 
+(defun claude-orgmode--skip-properties-drawer ()
+  "Skip past a PROPERTIES drawer at point if present.
+Leaves point after the :END: line.  Does nothing if no drawer found."
+  (when (and (not (eobp)) (looking-at-p "[ \t]*:PROPERTIES:"))
+    (re-search-forward "^[ \t]*:END:" nil t)
+    (forward-line 1)))
+
+(defun claude-orgmode--cleanup-content-file (content-file keep-file)
+  "Delete CONTENT-FILE if it is a temp file and KEEP-FILE is nil."
+  (when (and content-file
+             (not keep-file)
+             (claude-orgmode--looks-like-temp-file content-file))
+    (ignore-errors (delete-file content-file))))
+
 (defun claude-orgmode--file-preamble-bounds ()
   "Return (START . END) for the file-level preamble in the current buffer.
 START is after the frontmatter (PROPERTIES drawer + keyword lines + blank
 separator).  END is before the first heading or end of buffer."
   (save-excursion
     (goto-char (point-min))
-    ;; Skip PROPERTIES drawer
-    (when (looking-at-p "[ \t]*:PROPERTIES:")
-      (re-search-forward "^[ \t]*:END:" nil t)
-      (forward-line 1))
+    (claude-orgmode--skip-properties-drawer)
     ;; Skip keyword lines (#+TITLE:, #+FILETAGS:, etc.)
     (while (and (not (eobp)) (looking-at-p "^[ \t]*#\\+[A-Za-z_]+:"))
       (forward-line 1))
@@ -49,15 +60,11 @@ Point must be at a heading line.  START is after the heading's metadata
 \(PROPERTIES drawer, planning lines).  END is before the next heading
 at any level or end of buffer."
   (save-excursion
-    ;; Move past heading line
     (forward-line 1)
     ;; Assumes PROPERTIES drawer precedes planning lines (org-id/org-roam convention).
     ;; Standard org-mode allows the reverse, but all nodes managed by this plugin
     ;; are created with PROPERTIES first.
-    ;; Skip PROPERTIES drawer if present
-    (when (and (not (eobp)) (looking-at-p "[ \t]*:PROPERTIES:"))
-      (re-search-forward "^[ \t]*:END:" nil t)
-      (forward-line 1))
+    (claude-orgmode--skip-properties-drawer)
     ;; Skip planning lines (SCHEDULED, DEADLINE, CLOSED)
     (while (and (not (eobp))
                 (looking-at-p "^[ \t]*\\(SCHEDULED\\|DEADLINE\\|CLOSED\\):"))
@@ -93,7 +100,6 @@ Signals an error if NODE-ID is not found."
             (start (car bounds))
             (end (cdr bounds))
             (content (buffer-substring-no-properties start end)))
-       ;; Trim trailing whitespace but preserve internal structure
        (if (string-match "\\`[ \t\n]*\\'" content)
            ""
          (string-trim-right content))))))
@@ -119,7 +125,6 @@ Signals an error if HEADING already exists under PARENT-ID."
                               (t nil))))
        (unwind-protect
            (progn
-             ;; Check for duplicate heading
              (save-excursion
                (let ((search-end (if (= parent-level 0)
                                      (point-max)
@@ -130,7 +135,6 @@ Signals an error if HEADING already exists under PARENT-ID."
                    (while (re-search-forward heading-re search-end t)
                      (when (equal (org-get-heading t t t t) heading)
                        (error "Heading \"%s\" already exists under this node" heading))))))
-             ;; Find insertion point: end of parent's subtree
              (if (= parent-level 0)
                  (goto-char (point-max))
                (org-end-of-subtree t)
@@ -138,37 +142,22 @@ Signals an error if HEADING already exists under PARENT-ID."
                  (if (eobp)
                      (insert "\n")
                    (forward-char))))
-             ;; Ensure we're on a new line
              (unless (bolp) (insert "\n"))
-             ;; Insert the heading
              (insert (make-string child-level ?*) " " heading "\n")
-             ;; Move to the heading we just inserted
              (forward-line -1)
-             ;; Create ID for the new heading
              (let ((new-id (org-id-get-create)))
-               ;; Move past the PROPERTIES drawer to insert content
                (save-excursion
                  (forward-line 1)
-                 (when (looking-at-p "[ \t]*:PROPERTIES:")
-                   (re-search-forward "^[ \t]*:END:" nil t)
-                   (forward-line 1))
-                 ;; Insert content if provided
+                 (claude-orgmode--skip-properties-drawer)
                  (when actual-content
                    (insert actual-content)
                    (unless (string-suffix-p "\n" actual-content)
                      (insert "\n"))))
-               ;; Format, save, sync
                (claude-orgmode--format-buffer)
                (save-buffer)
                (claude-orgmode--backend-db-sync)
-               ;; Return the new ID
                new-id))
-         ;; Cleanup temp file
-         (when (and content-file
-                    (not keep-file)
-                    (file-exists-p content-file)
-                    (claude-orgmode--looks-like-temp-file content-file))
-           (ignore-errors (delete-file content-file))))))))
+         (claude-orgmode--cleanup-content-file content-file keep-file))))))
 
 ;;;###autoload
 (cl-defun claude-orgmode-replace-section (node-id &key content content-file keep-file)
@@ -199,12 +188,7 @@ content are preserved.  Returns NODE-ID."
              (save-buffer)
              (claude-orgmode--backend-db-sync)
              node-id)
-         ;; Cleanup temp file
-         (when (and content-file
-                    (not keep-file)
-                    (file-exists-p content-file)
-                    (claude-orgmode--looks-like-temp-file content-file))
-           (ignore-errors (delete-file content-file))))))))
+         (claude-orgmode--cleanup-content-file content-file keep-file))))))
 
 ;;;###autoload
 (cl-defun claude-orgmode-append-to-section (node-id &key content content-file keep-file)
@@ -226,7 +210,6 @@ Returns NODE-ID."
        (unwind-protect
            (progn
              (goto-char end)
-             ;; Ensure blank line separator if there's existing content
              (let ((has-content (> end (car bounds))))
                (when has-content
                  ;; Back up over trailing whitespace to insert cleanly
@@ -240,12 +223,7 @@ Returns NODE-ID."
              (save-buffer)
              (claude-orgmode--backend-db-sync)
              node-id)
-         ;; Cleanup temp file
-         (when (and content-file
-                    (not keep-file)
-                    (file-exists-p content-file)
-                    (claude-orgmode--looks-like-temp-file content-file))
-           (ignore-errors (delete-file content-file))))))))
+         (claude-orgmode--cleanup-content-file content-file keep-file))))))
 
 ;;;###autoload
 (defun claude-orgmode-delete-section (node-id)
