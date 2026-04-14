@@ -229,6 +229,7 @@ Strip quotes from strings and parse structures as needed.
 4. **Use :content-file for large content** — avoids shell escaping issues, auto-cleaned up
 5. **Use node IDs for reliable operations** — more stable than titles
 6. **Sync database when needed** — after bulk operations or if searches miss recent notes
+7. **Never use `find-file` in ad-hoc elisp** — when writing inline elisp for `emacsclient --eval`, always use `(with-current-buffer (find-file-noselect path) ...)` instead of `(find-file path)`. Bare `find-file` switches the user's active Emacs window to that buffer, stealing focus from whatever they are working on
 
 ## Additional References
 

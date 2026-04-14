@@ -715,6 +715,57 @@
         (when (file-exists-p org-roam-directory)
           (delete-directory org-roam-directory t)))))
 
+  (it "falls back to org-id-find when backend DB lacks the node"
+    (let ((claude-orgmode--backend 'org-roam)
+          (org-roam-directory (make-temp-file "org-roam-test-" t))
+          (org-roam-db-location (expand-file-name "org-roam.db"
+                                                   (make-temp-file "org-roam-test-" t)))
+          (org-id-locations-file (expand-file-name "org-id-locations"
+                                                    (make-temp-file "org-id-test-" t)))
+          (org-id-locations nil)
+          (org-id-files nil))
+      (unwind-protect
+          (progn
+            (let ((test-file (expand-file-name "test.org" org-roam-directory)))
+              (with-temp-file test-file
+                (insert ":PROPERTIES:\n:ID:       fallback-id-test\n:END:\n#+TITLE: Fallback Note\n\n* Heading\n:PROPERTIES:\n:ID:       fallback-heading-id\n:END:\nBody text\n"))
+              ;; Register with org-id but do NOT sync org-roam DB
+              (org-id-update-id-locations (list test-file))
+              ;; Verify backend returns nil
+              (expect (claude-orgmode--backend-node-from-id "fallback-heading-id") :to-be nil)
+              ;; Should succeed via org-id fallback and return correct level
+              (let ((result (claude-orgmode--with-node-context-by-id
+                             "fallback-heading-id"
+                             (lambda (node)
+                               (claude-orgmode--backend-node-level node)))))
+                (expect result :to-equal 1))))
+        (when (file-exists-p org-roam-directory)
+          (delete-directory org-roam-directory t)))))
+
+  (it "falls back to org-id-find for file-level node with level 0"
+    (let ((claude-orgmode--backend 'org-roam)
+          (org-roam-directory (make-temp-file "org-roam-test-" t))
+          (org-roam-db-location (expand-file-name "org-roam.db"
+                                                   (make-temp-file "org-roam-test-" t)))
+          (org-id-locations-file (expand-file-name "org-id-locations"
+                                                    (make-temp-file "org-id-test-" t)))
+          (org-id-locations nil)
+          (org-id-files nil))
+      (unwind-protect
+          (progn
+            (let ((test-file (expand-file-name "test.org" org-roam-directory)))
+              (with-temp-file test-file
+                (insert ":PROPERTIES:\n:ID:       fallback-file-level\n:END:\n#+TITLE: File Level\n"))
+              (org-id-update-id-locations (list test-file))
+              (expect (claude-orgmode--backend-node-from-id "fallback-file-level") :to-be nil)
+              (let ((result (claude-orgmode--with-node-context-by-id
+                             "fallback-file-level"
+                             (lambda (node)
+                               (claude-orgmode--backend-node-level node)))))
+                (expect result :to-equal 0))))
+        (when (file-exists-p org-roam-directory)
+          (delete-directory org-roam-directory t)))))
+
   (it "never falls back to title lookup"
     (let ((claude-orgmode--backend 'org-roam)
           (org-roam-directory (make-temp-file "org-roam-test-" t))

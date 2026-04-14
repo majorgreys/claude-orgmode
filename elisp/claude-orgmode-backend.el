@@ -101,10 +101,13 @@ Each element is a backend-specific object (org-roam-node or vulpea-note)."
     ('vulpea (vulpea-note-aliases node))))
 
 (defun claude-orgmode--backend-node-level (node)
-  "Return the heading level of NODE (0 = file-level)."
-  (pcase (claude-orgmode--detect-backend)
-    ('org-roam (org-roam-node-level node))
-    ('vulpea (vulpea-note-level node))))
+  "Return the heading level of NODE (0 = file-level).
+NODE may be a backend object or a fallback plist with :fallback t."
+  (if (plist-get node :fallback)
+      (plist-get node :level)
+    (pcase (claude-orgmode--detect-backend)
+      ('org-roam (org-roam-node-level node))
+      ('vulpea (vulpea-note-level node)))))
 
 ;;; Lookup
 

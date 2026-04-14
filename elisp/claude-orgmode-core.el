@@ -136,9 +136,18 @@ Returns the result of FUNCTION."
 Unlike `claude-orgmode--with-node-context', this function only accepts
 node IDs and never falls back to title lookup.
 FUNCTION receives the node as an argument.
+Falls back to `org-id-find' when the backend database has not yet
+indexed NODE-ID (e.g. after a recent create-section).
 Returns the result of FUNCTION."
   (let* ((node (claude-orgmode--backend-node-from-id node-id))
          (file (when node (claude-orgmode--backend-node-file node))))
+    ;; Fallback: backend DB doesn't know this ID yet, try org-id directly
+    (unless file
+      (let ((loc (org-id-find node-id)))
+        (when loc
+          (setq file (car loc))
+          ;; Build a fallback node with :level filled in after positioning
+          (setq node :pending))))
     (unless node
       (error "Node not found for ID: %s" node-id))
     (unless (file-exists-p file)
@@ -150,6 +159,9 @@ Returns the result of FUNCTION."
              (format ":ID:[ \t]+%s" (regexp-quote node-id)) nil t)
             (progn
               (org-back-to-heading-or-point-min t)
+              ;; Resolve fallback node now that point is at the heading
+              (when (eq node :pending)
+                (setq node (list :fallback t :level (or (org-current-level) 0))))
               (funcall function node))
           (error "Could not locate node in file: %s" node-id))))))
 
